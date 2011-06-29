@@ -18,7 +18,6 @@ void LiuControllabilityModel::calculate() {
         throw std::runtime_error("m_pGraph must not be null");
 
     // Construct the bipartite graph on which we are going to work
-    // TODO: handle undirected graphs!
     long int i = 0, n = m_pGraph->vcount(), m = m_pGraph->ecount();
     Vector edges = m_pGraph->getEdgelist();
     Graph bipartiteGraph(2 * n);
@@ -30,6 +29,13 @@ void LiuControllabilityModel::calculate() {
         edges[i] += n;
     }
     bipartiteGraph.addEdges(edges);
+    if (!m_pGraph->isDirected()) {
+        for (i = 0; i < 2*m; i += 2) {
+            edges[i] -= n;
+            edges[i+1] += n;
+        }
+        bipartiteGraph.addEdges(edges);
+    }
 
     // Calculate the maximum bipartite matching
     VectorLong matching;
