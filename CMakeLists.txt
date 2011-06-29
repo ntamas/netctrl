@@ -11,6 +11,11 @@ project(netctrl C CXX)
 # Build options
 #####################################################################
 
+# Whether we prefer static to shared libraries
+option(PREFER_STATIC_LIBRARIES
+       "Decides whether we prefer static libraries to shared ones when they both exist"
+	   OFF)
+
 #####################################################################
 # Version information
 #####################################################################
@@ -26,12 +31,23 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/netctrl/version.h.in
 #####################################################################
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/etc/cmake;${CMAKE_CURRENT_SOURCE_DIR}/vendor/igraphpp/etc/cmake;${CMAKE_MODULE_PATH})
+if(PREFER_STATIC_LIBRARIES)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES .a;.lib;${CMAKE_FIND_LIBRARY_SUFFIXES})
+	set(CMAKE_C_FLAGS "-static-libgcc ${CMAKE_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "-static-libgcc ${CMAKE_CXX_FLAGS}")
+endif(PREFER_STATIC_LIBRARIES)
 
 #####################################################################
 # Find dependencies
 #####################################################################
 
 find_package(igraph REQUIRED)
+
+if(PREFER_STATIC_LIBRARIES)
+	find_package(ZLIB REQUIRED)
+	find_package(LibXml2 REQUIRED)
+	set(igraph_LIBRARIES ${igraph_LIBRARIES} ${LIBXML2_LIBRARIES} ${ZLIB_LIBRARIES})
+endif(PREFER_STATIC_LIBRARIES)
 
 #####################################################################
 # Compiler flags for different build configurations
