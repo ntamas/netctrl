@@ -48,21 +48,42 @@ class ControlPath {
 protected:
     igraph::Vector m_nodes;
 
+    /// Creates an empty control path
+    ControlPath() : m_nodes() {}
+
     /// Creates a control path with the given nodes
-    ControlPath(const igraph::Vector& nodes) : m_nodes(nodes) {}
+    explicit ControlPath(const igraph::Vector& nodes) : m_nodes(nodes) {}
 
 public:
+    /// Appends a new node to the control path
+    void appendNode(long int node) {
+        m_nodes.push_back(node);
+    }
+
     /// Returns the nodes involved in the control path
-    igraph::Vector nodes() const {
+    igraph::Vector& nodes() {
         return m_nodes;
+    }
+
+    /// Returns the nodes involved in the control path (const variant)
+    const igraph::Vector& nodes() const {
+        return m_nodes;
+    }
+
+    /// Returns the number of nodes involved
+    size_t size() const {
+        return m_nodes.size();
     }
 };
 
 /// Control path that represents a stem
 class Stem : public ControlPath {
 public:
+    /// Creates an empty stem
+    Stem() : ControlPath() {}
+
     /// Creates a stem with the given nodes
-    Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
+    explicit Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
 
     /// Returns the root of the stem (i.e. the first vertex)
     long int root() const {
@@ -86,8 +107,11 @@ protected:
     const Stem* m_stem;
 
 public:
+    /// Creates an empty bud
+    Bud() : ControlPath() {}
+
     /// Creates a bud with the given nodes
-    Bud(const igraph::Vector& nodes, const Stem* stem = 0)
+    explicit Bud(const igraph::Vector& nodes, const Stem* stem = 0)
         : ControlPath(nodes), m_stem(stem) {}
 };
 
