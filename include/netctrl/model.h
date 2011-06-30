@@ -5,6 +5,7 @@
 
 #include <netctrl/model/controllability.h>
 #include <netctrl/model/liu.h>
+#include <netctrl/model/switchboard.h>
 
 #endif
 

@@ -1,6 +1,5 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
-#include <stdexcept>
 #include <igraph/cpp/edge_iterator.h>
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/matching.h>
@@ -61,9 +60,53 @@ void LiuControllabilityModel::calculate() {
     // Clear the list of control paths
     clearControlPaths();
     
-    // Construct stems from each driver node
+    // Construct stems from each driver node. At the same time, create a vector that
+    // maps vertices to the stems they belong to.
+    std::vector<Stem*> verticesToStems(n);
     for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
+        Stem* stem = new Stem();
+
         u = *it;
+        while (u != -1) {
+            stem->appendNode(u);
+            verticesToStems[u] = stem;
+            v = matching[u];
+            matching[u] = -1;
+            u = v;
+        }
+
+        m_controlPaths.push_back(stem);
+    }
+
+    // The remaining matched edges form buds
+    for (u = 0; u < n; u++) {
+        if (matching[u] == -1)
+            continue;
+
+        Bud* bud = new Bud();
+        while (u != -1) {
+            bud->appendNode(u);
+            v = matching[u];
+            matching[u] = -1;
+            u = v;
+        }
+        if (bud->size() > 1 && bud->nodes().front() == bud->nodes().back()) {
+            bud->nodes().pop_back();
+        }
+
+        // Check whether we can attach the bud to a stem
+        for (Vector::const_iterator it = bud->nodes().begin(), end = bud->nodes().end();
+                it != end && bud->stem() == 0; it++) {
+            Vector neis = m_pGraph->neighbors(*it, IGRAPH_IN);
+            for (Vector::const_iterator it2 = neis.begin(); it2 != neis.end(); it2++) {
+                if (verticesToStems[*it2] != 0) {
+                    bud->setStem(verticesToStems[*it2]);
+                    break;
+                }
+            }
+        }
+
+        m_controlPaths.push_back(bud);
     }
 
     // Cleanup: if there is no driver node, we must provide at least one
@@ -79,12 +122,12 @@ void LiuControllabilityModel::clearControlPaths() {
     }
 }
 
-igraph::Vector LiuControllabilityModel::getDriverNodes() const {
-    return m_driverNodes;
+std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
+    return m_controlPaths;
 }
 
-std::vector<ControlPath*> LiuControllabilityModel::getControlPaths() const {
-    return m_controlPaths;
+igraph::Vector LiuControllabilityModel::driverNodes() const {
+    return m_driverNodes;
 }
 
 }          // end of namespace

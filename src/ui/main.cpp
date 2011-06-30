@@ -70,15 +70,18 @@ public:
              (long)m_pGraph->vcount(), (long)m_pGraph->ecount());
 
         switch (m_args.modelType) {
-            case LIU_CONTROLLABILITY_MODEL:
+            case LIU_MODEL:
                 m_pModel.reset(new LiuControllabilityModel(m_pGraph.get()));
+                break;
+            case SWITCHBOARD_MODEL:
+                m_pModel.reset(new SwitchboardControllabilityModel(m_pGraph.get()));
                 break;
         }
 
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
-        Vector driver_nodes = m_pModel->getDriverNodes();
+        Vector driver_nodes = m_pModel->driverNodes();
         info(">> found %d driver node(s)", driver_nodes.size());
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
