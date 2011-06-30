@@ -39,6 +39,32 @@ void SwitchboardControllabilityModel::calculate() {
             driverNodeSet.insert(m_pGraph->edge(stem->root()).tail());
         }
     }
+    
+    // Now, check the buds. Each bud that is not attached to a stem in the line
+    // graph is problematic. For such buds, we have to iterate over its edges,
+    // map the endpoints of the edges back to the original graph, and see if
+    // any of these is already a driver node. If so, we are okay. If not, we
+    // have to make one of the nodes a driver node.
+    for (std::vector<ControlPath*>::const_iterator it = controlPaths.begin();
+            it != controlPaths.end(); it++) {
+        ControlPath* path = *it;
+        Bud* bud = dynamic_cast<Bud*>(path);
+        if (bud != 0 && bud->stem() == 0) {
+            Vector::const_iterator it, end = bud->nodes().end();
+            bool foundDriverNode = false;
+
+            for (it = bud->nodes().begin(); it != end && !foundDriverNode; it++) {
+                if (driverNodeSet.find(*it) != driverNodeSet.end())
+                    foundDriverNode = true;
+            }
+
+            if (!foundDriverNode) {
+                // TODO: better strategy; what if there is another node which
+                // could control more than one bud? Is it possible?
+                driverNodeSet.insert(bud->nodes().front());
+            }
+        }
+    }
 
     m_driverNodes = Vector(driverNodeSet.begin(), driverNodeSet.end());
 }
