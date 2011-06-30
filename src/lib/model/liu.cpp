@@ -61,13 +61,16 @@ void LiuControllabilityModel::calculate() {
     // Clear the list of control paths
     clearControlPaths();
     
-    // Construct stems from each driver node
+    // Construct stems from each driver node. At the same time, create a vector that
+    // maps vertices to the stems they belong to.
+    std::vector<Stem*> verticesToStems(n);
     for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
         Stem* stem = new Stem();
 
         u = *it;
         while (u != -1) {
             stem->appendNode(u);
+            verticesToStems[u] = stem;
             v = matching[u];
             matching[u] = -1;
             u = v;
@@ -90,6 +93,18 @@ void LiuControllabilityModel::calculate() {
         }
         if (bud->size() > 1 && bud->nodes().front() == bud->nodes().back()) {
             bud->nodes().pop_back();
+        }
+
+        // Check whether we can attach the bud to a stem
+        for (Vector::const_iterator it = bud->nodes().begin(), end = bud->nodes().end();
+                it != end && bud->stem() == 0; it++) {
+            Vector neis = m_pGraph->neighbors(*it, IGRAPH_IN);
+            for (Vector::const_iterator it2 = neis.begin(); it2 != neis.end(); it2++) {
+                if (verticesToStems[*it2] != 0) {
+                    bud->setStem(verticesToStems[*it2]);
+                    break;
+                }
+            }
         }
 
         m_controlPaths.push_back(bud);

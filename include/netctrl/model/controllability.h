@@ -104,15 +104,25 @@ protected:
      * When this is null, it means that the bud is attached to an input node
      * directly.
      */
-    const Stem* m_stem;
+    const Stem* m_pStem;
 
 public:
     /// Creates an empty bud
-    Bud() : ControlPath() {}
+    Bud() : ControlPath(), m_pStem(0) {}
 
     /// Creates a bud with the given nodes
-    explicit Bud(const igraph::Vector& nodes, const Stem* stem = 0)
-        : ControlPath(nodes), m_stem(stem) {}
+    explicit Bud(const igraph::Vector& nodes, const Stem* pStem = 0)
+        : ControlPath(nodes), m_pStem(pStem) {}
+
+    /// Attaches the bud to a stem
+    void setStem(Stem* pStem) {
+        m_pStem = pStem;
+    }
+
+    /// Returns the stem the bud is attached to
+    const Stem* stem() const {
+        return m_pStem;
+    }
 };
 
 }       // end of namespace
