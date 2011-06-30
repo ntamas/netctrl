@@ -26,8 +26,8 @@ public:
     virtual ~SwitchboardControllabilityModel();
 
     virtual void calculate();
-    virtual igraph::Vector getDriverNodes() const;
-    virtual std::vector<ControlPath*> getControlPaths() const;
+    virtual std::vector<ControlPath*> controlPaths() const;
+    virtual igraph::Vector driverNodes() const;
 
 protected:
     /// Removes all the control paths from the previous run (if any)

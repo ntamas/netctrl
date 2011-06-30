@@ -122,12 +122,12 @@ void LiuControllabilityModel::clearControlPaths() {
     }
 }
 
-igraph::Vector LiuControllabilityModel::getDriverNodes() const {
-    return m_driverNodes;
+std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
+    return m_controlPaths;
 }
 
-std::vector<ControlPath*> LiuControllabilityModel::getControlPaths() const {
-    return m_controlPaths;
+igraph::Vector LiuControllabilityModel::driverNodes() const {
+    return m_driverNodes;
 }
 
 }          // end of namespace

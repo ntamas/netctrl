@@ -30,15 +30,15 @@ public:
      */
     virtual void calculate() = 0;
 
-    /// Returns the set of driver nodes after a successful calculation
-    virtual igraph::Vector getDriverNodes() const = 0;
-
     /// Returns a vector of control paths after a successful calculation
     /**
      * Pointers returned in this vector are owned by the model; they should
      * \em not be destroyed by the caller.
      */
-    virtual std::vector<ControlPath*> getControlPaths() const = 0;
+    virtual std::vector<ControlPath*> controlPaths() const = 0;
+
+    /// Returns the set of driver nodes after a successful calculation
+    virtual igraph::Vector driverNodes() const = 0;
 
 };
 
@@ -55,6 +55,9 @@ protected:
     explicit ControlPath(const igraph::Vector& nodes) : m_nodes(nodes) {}
 
 public:
+    /// Virtual destructor that does nothing
+    virtual ~ControlPath() {}
+
     /// Appends a new node to the control path
     void appendNode(long int node) {
         m_nodes.push_back(node);

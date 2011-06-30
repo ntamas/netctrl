@@ -81,7 +81,7 @@ public:
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
-        Vector driver_nodes = m_pModel->getDriverNodes();
+        Vector driver_nodes = m_pModel->driverNodes();
         info(">> found %d driver node(s)", driver_nodes.size());
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
