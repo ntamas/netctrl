@@ -1,6 +1,5 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
-#include <stdexcept>
 #include <igraph/cpp/edge_iterator.h>
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/matching.h>

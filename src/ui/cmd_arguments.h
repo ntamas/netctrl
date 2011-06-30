@@ -10,7 +10,7 @@
 
 /// Possible model types handled by the application
 typedef enum {
-    LIU_CONTROLLABILITY_MODEL
+    LIU_MODEL, SWITCHBOARD_MODEL
 } ModelType;
 
 /// Parses the command line arguments of the main app

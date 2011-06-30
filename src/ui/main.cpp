@@ -70,8 +70,11 @@ public:
              (long)m_pGraph->vcount(), (long)m_pGraph->ecount());
 
         switch (m_args.modelType) {
-            case LIU_CONTROLLABILITY_MODEL:
+            case LIU_MODEL:
                 m_pModel.reset(new LiuControllabilityModel(m_pGraph.get()));
+                break;
+            case SWITCHBOARD_MODEL:
+                m_pModel.reset(new SwitchboardControllabilityModel(m_pGraph.get()));
                 break;
         }
 

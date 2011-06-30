@@ -19,7 +19,7 @@ CommandLineArguments::CommandLineArguments(
     m_executableName(programName), m_versionNumber(version),
     m_options(),
     inputFile(), verbosity(1), outputFile(),
-    modelType(LIU_CONTROLLABILITY_MODEL) {
+    modelType(LIU_MODEL) {
 
     addOption(USE_STDIN, "-", SO_NONE);
 
@@ -104,7 +104,9 @@ void CommandLineArguments::parse(int argc, char** argv) {
             case MODEL:
                 arg = args.OptionArg() ? args.OptionArg() : "";
                 if (arg == "liu")
-                    modelType = LIU_CONTROLLABILITY_MODEL;
+                    modelType = LIU_MODEL;
+                else if (arg == "switchboard")
+                    modelType = SWITCHBOARD_MODEL;
                 else {
                     cerr << "Unknown model type: " << arg << '\n';
                     ret = 1;
@@ -151,5 +153,5 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "    -q, --quiet         quiet mode (less output, only errors)\n"
           "\n"
           "    -m, --model         selects the controllability model to use.\n"
-          "                        Currently the only supported model is 'liu'\n";
+          "                        Supported models: 'liu', 'switchboard'\n";
 }
