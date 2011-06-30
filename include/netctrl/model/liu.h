@@ -22,9 +22,16 @@ public:
         : ControllabilityModel(pGraph), m_driverNodes(), m_controlPaths() {
     }
 
+    /// Destroys the model
+    virtual ~LiuControllabilityModel();
+
     virtual void calculate();
     virtual igraph::Vector getDriverNodes() const;
     virtual std::vector<ControlPath*> getControlPaths() const;
+
+protected:
+    /// Removes all the control paths from the previous run (if any)
+    void clearControlPaths();
 };
 
 }       // end of namespace
