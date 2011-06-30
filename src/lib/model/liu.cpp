@@ -12,13 +12,17 @@ namespace netctrl {
 
 using namespace igraph;
 
+LiuControllabilityModel::~LiuControllabilityModel() {
+    clearControlPaths();
+}
+
 void LiuControllabilityModel::calculate() {
     // Check if we have a graph
     if (m_pGraph == 0)
         throw std::runtime_error("m_pGraph must not be null");
 
     // Construct the bipartite graph on which we are going to work
-    long int i = 0, n = m_pGraph->vcount(), m = m_pGraph->ecount();
+    long int i = 0, n = m_pGraph->vcount(), m = m_pGraph->ecount(), u, v;
     Vector edges = m_pGraph->getEdgelist();
     Graph bipartiteGraph(2 * n);
     VectorBool types(2 * n);
@@ -43,14 +47,35 @@ void LiuControllabilityModel::calculate() {
     matching.remove_section(0, n);
 
     // Create the list of driver nodes
+    VectorBool isNotDriverNode(n);
+    for (i = 0; i < n; i++) {
+        if (matching[i] != -1)
+            isNotDriverNode[matching[i]] = 1;
+    }
     m_driverNodes.clear();
     for (i = 0; i < n; i++) {
-        if (matching[i] == -1)
+        if (!isNotDriverNode[i])
             m_driverNodes.push_back(i);
     }
 
+    // Clear the list of control paths
+    clearControlPaths();
+    
+    // Construct stems from each driver node
+    for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
+        u = *it;
+    }
+
+    // Cleanup: if there is no driver node, we must provide at least one
     if (m_driverNodes.empty()) {
         m_driverNodes.push_back(0);
+    }
+}
+
+void LiuControllabilityModel::clearControlPaths() {
+    for (std::vector<ControlPath*>::const_iterator it = m_controlPaths.begin();
+            it != m_controlPaths.end(); it++) {
+        delete *it;
     }
 }
 
@@ -59,7 +84,7 @@ igraph::Vector LiuControllabilityModel::getDriverNodes() const {
 }
 
 std::vector<ControlPath*> LiuControllabilityModel::getControlPaths() const {
-    throw std::runtime_error("not implemented yet");
+    return m_controlPaths;
 }
 
 }          // end of namespace
