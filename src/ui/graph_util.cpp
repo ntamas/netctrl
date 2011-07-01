@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <igraph/cpp/io.h>
 #include "graph_util.h"
 
 using namespace std;
@@ -51,16 +52,15 @@ Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format) {
 
     switch (format) {
         case GRAPH_FORMAT_EDGELIST:
-            result = Graph::ReadEdgelist(fptr, 0, directed);
+            result = read_edgelist(fptr, 0, directed);
             break;
 
         case GRAPH_FORMAT_NCOL:
-            result = Graph::ReadNCOL(fptr, true,
-                    IGRAPH_ADD_WEIGHTS_IF_PRESENT, directed);
+            result = read_ncol(fptr, true, IGRAPH_ADD_WEIGHTS_IF_PRESENT, directed);
             break;
 
         case GRAPH_FORMAT_GRAPHML:
-            result = Graph::ReadGraphML(fptr);
+            result = read_graphml(fptr);
             break;
 
         default:
