@@ -73,10 +73,18 @@ public:
         return m_nodes;
     }
 
+    /// Prepends a node to the control path
+    void prependNode(long int node) {
+        m_nodes.insert(0, node);
+    }
+
     /// Returns the number of nodes involved
     size_t size() const {
         return m_nodes.size();
     }
+
+    /// Returns a string representation of the control path
+    virtual std::string toString() const = 0;
 };
 
 /// Control path that represents a stem
@@ -97,6 +105,9 @@ public:
     long int tip() const {
         return m_nodes.back();
     }
+
+    /// Returns a string representation of the stem
+    virtual std::string toString() const;
 };
 
 /// Control path that represents a bud
@@ -126,6 +137,9 @@ public:
     const Stem* stem() const {
         return m_pStem;
     }
+
+    /// Returns a string representation of the bud
+    virtual std::string toString() const;
 };
 
 }       // end of namespace

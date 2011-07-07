@@ -43,17 +43,16 @@ void LiuControllabilityModel::calculate() {
     // Calculate the maximum bipartite matching
     VectorLong matching;
     maximum_bipartite_matching(bipartiteGraph, types, 0, 0, &matching, 0);
-    matching.remove_section(0, n);
-
-    // Create the list of driver nodes
-    VectorBool isNotDriverNode(n);
     for (i = 0; i < n; i++) {
         if (matching[i] != -1)
-            isNotDriverNode[matching[i]] = 1;
+            matching[i] -= n;
     }
+    m_matching = DirectedMatching(matching, DirectedMatching::DIRECTION_IN_OUT);
+
+    // Create the list of driver nodes
     m_driverNodes.clear();
     for (i = 0; i < n; i++) {
-        if (!isNotDriverNode[i])
+        if (!m_matching.isMatched(i))
             m_driverNodes.push_back(i);
     }
 
@@ -61,8 +60,10 @@ void LiuControllabilityModel::calculate() {
     clearControlPaths();
     
     // Construct stems from each driver node. At the same time, create a vector that
-    // maps vertices to the stems they belong to.
+    // maps vertices to the stems they belong to and another one that marks vertices
+    // that have already been assigned to stems or buds.
     std::vector<Stem*> verticesToStems(n);
+    VectorBool vertexUsed(n);
     for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
         Stem* stem = new Stem();
 
@@ -70,9 +71,8 @@ void LiuControllabilityModel::calculate() {
         while (u != -1) {
             stem->appendNode(u);
             verticesToStems[u] = stem;
-            v = matching[u];
-            matching[u] = -1;
-            u = v;
+            vertexUsed[u] = true;
+            u = m_matching.matchOut(u);
         }
 
         m_controlPaths.push_back(stem);
@@ -80,15 +80,14 @@ void LiuControllabilityModel::calculate() {
 
     // The remaining matched edges form buds
     for (u = 0; u < n; u++) {
-        if (matching[u] == -1)
+        if (vertexUsed[u] || !m_matching.isMatched(u))
             continue;
 
         Bud* bud = new Bud();
-        while (u != -1) {
+        while (!vertexUsed[u]) {
             bud->appendNode(u);
-            v = matching[u];
-            matching[u] = -1;
-            u = v;
+            vertexUsed[u] = true;
+            u = m_matching.matchOut(u);
         }
         if (bud->size() > 1 && bud->nodes().front() == bud->nodes().back()) {
             bud->nodes().pop_back();
@@ -128,6 +127,14 @@ std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
 
 igraph::Vector LiuControllabilityModel::driverNodes() const {
     return m_driverNodes;
+}
+
+const DirectedMatching* LiuControllabilityModel::matching() const {
+    return &m_matching;
+}
+
+DirectedMatching* LiuControllabilityModel::matching() {
+    return &m_matching;
 }
 
 }          // end of namespace
