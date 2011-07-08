@@ -135,7 +135,8 @@ void SwitchboardControllabilityModel::calculate() {
                 for (Vector::iterator nodeIt2 = neis.begin();
                         !resolved && nodeIt2 != neis.end(); nodeIt2++) {
                     // Does this node have an incoming matched edge?
-                    if (pMatching->isMatched(*nodeIt2))
+                    v = *nodeIt2;
+                    if (pMatching->isMatched(v))
                         continue;
 
                     // Nope, so we can theoretically use it to break the bud.

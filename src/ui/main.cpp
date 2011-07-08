@@ -66,7 +66,8 @@ public:
 
         info(">> loading graph: %s", m_args.inputFile.c_str());
         m_pGraph = loadGraph(m_args.inputFile);
-        info(">> graph has %ld vertices and %ld edges",
+        info(">> graph is %s and has %ld vertices and %ld edges",
+             m_pGraph->isDirected() ? "directed" : "undirected",
              (long)m_pGraph->vcount(), (long)m_pGraph->ecount());
 
         switch (m_args.modelType) {

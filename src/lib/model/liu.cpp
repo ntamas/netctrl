@@ -21,7 +21,7 @@ void LiuControllabilityModel::calculate() {
         throw std::runtime_error("m_pGraph must not be null");
 
     // Construct the bipartite graph on which we are going to work
-    long int i = 0, n = m_pGraph->vcount(), m = m_pGraph->ecount(), u, v;
+    long int i = 0, n = m_pGraph->vcount(), m = m_pGraph->ecount(), u;
     Vector edges = m_pGraph->getEdgelist();
     Graph bipartiteGraph(2 * n);
     VectorBool types(2 * n);

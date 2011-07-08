@@ -18,6 +18,8 @@ GraphFormat GraphUtil::detectFormat(const string& filename) {
     transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
     if (extension == "ncol")
         return GRAPH_FORMAT_NCOL;
+    if (extension == "lgl")
+        return GRAPH_FORMAT_LGL;
     if (extension == "txt")
         return GRAPH_FORMAT_EDGELIST;
     if (extension == "graphml")
@@ -26,7 +28,7 @@ GraphFormat GraphUtil::detectFormat(const string& filename) {
     return GRAPH_FORMAT_UNKNOWN;
 }
 
-Graph GraphUtil::readGraph(const string& filename, GraphFormat format) {
+Graph GraphUtil::readGraph(const string& filename, GraphFormat format, bool directed) {
     if (format == GRAPH_FORMAT_AUTO || format == GRAPH_FORMAT_UNKNOWN)
         format = GraphUtil::detectFormat(filename);
 
@@ -38,7 +40,7 @@ Graph GraphUtil::readGraph(const string& filename, GraphFormat format) {
     }
 
     try {
-        Graph result = readGraph(fptr, format);
+        Graph result = readGraph(fptr, format, directed);
         fclose(fptr);
         return result;
     } catch (const UnknownGraphFormatException& ex) {
@@ -46,9 +48,8 @@ Graph GraphUtil::readGraph(const string& filename, GraphFormat format) {
     }
 }
 
-Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format) {
+Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format, bool directed) {
     Graph result;
-    bool directed = false;
 
     switch (format) {
         case GRAPH_FORMAT_EDGELIST:
@@ -57,6 +58,10 @@ Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format) {
 
         case GRAPH_FORMAT_NCOL:
             result = read_ncol(fptr, true, IGRAPH_ADD_WEIGHTS_IF_PRESENT, directed);
+            break;
+
+        case GRAPH_FORMAT_LGL:
+            result = read_lgl(fptr, false, IGRAPH_ADD_WEIGHTS_IF_PRESENT, directed);
             break;
 
         case GRAPH_FORMAT_GRAPHML:

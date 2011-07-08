@@ -11,6 +11,7 @@ typedef enum {
     GRAPH_FORMAT_UNKNOWN,
     GRAPH_FORMAT_EDGELIST,
     GRAPH_FORMAT_NCOL,
+    GRAPH_FORMAT_LGL,
     GRAPH_FORMAT_GRAPHML
 } GraphFormat;
 
@@ -32,10 +33,12 @@ public:
 
     /// Reads a graph without having to know what format it is in
     static igraph::Graph readGraph(const std::string& filename,
-            GraphFormat format = GRAPH_FORMAT_AUTO);
+            GraphFormat format = GRAPH_FORMAT_AUTO,
+            bool directed = true);
 
     /// Reads a graph from the given stream using the given format
-    static igraph::Graph readGraph(FILE* fptr, GraphFormat format);
+    static igraph::Graph readGraph(FILE* fptr, GraphFormat format,
+            bool directed = true);
 };
 
 #endif       // _GRAPH_UTIL_H
