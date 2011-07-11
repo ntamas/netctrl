@@ -62,7 +62,7 @@ void SwitchboardControllabilityModel::calculate() {
     Vector::iterator nodeIt, nodeIt2, nodeIt3;
     DirectedMatching* pMatching = model.matching();
 
-    // De-budding. Buds without a stem may cause problems (see below), so
+    // Bud pruning. Buds without a stem may cause problems (see below), so
     // we try to circumvent the problem here by converting buds without
     // stems to a stem. This is done by iterating over the vertices of the
     // bud and checking the following:
@@ -210,7 +210,8 @@ void SwitchboardControllabilityModel::calculate() {
             if (!foundDriverNode) {
                 // TODO: better strategy; what if there is another node which
                 // could control more than one bud? Is it possible?
-                driverNodeSet.insert(bud->nodes().front());
+                long int edgeID = bud->nodes().front();
+                driverNodeSet.insert(m_pGraph->edge(edgeID).tail());
             }
         }
     }
