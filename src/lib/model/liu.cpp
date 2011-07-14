@@ -121,6 +121,11 @@ void LiuControllabilityModel::clearControlPaths() {
     }
 }
 
+ControllabilityModel* LiuControllabilityModel::clone() {
+    ControllabilityModel* result = new LiuControllabilityModel(m_pGraph);
+    return result;
+}
+
 std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
     return m_controlPaths;
 }
@@ -135,6 +140,12 @@ const DirectedMatching* LiuControllabilityModel::matching() const {
 
 DirectedMatching* LiuControllabilityModel::matching() {
     return &m_matching;
+}
+
+void LiuControllabilityModel::setGraph(igraph::Graph* graph) {
+    ControllabilityModel::setGraph(graph);
+    m_driverNodes.clear();
+    clearControlPaths();
 }
 
 }          // end of namespace

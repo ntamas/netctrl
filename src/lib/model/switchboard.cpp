@@ -226,12 +226,23 @@ void SwitchboardControllabilityModel::clearControlPaths() {
     }
 }
 
+ControllabilityModel* SwitchboardControllabilityModel::clone() {
+    ControllabilityModel* result = new SwitchboardControllabilityModel(m_pGraph);
+    return result;
+}
+
 std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const {
     return m_controlPaths;
 }
 
 igraph::Vector SwitchboardControllabilityModel::driverNodes() const {
     return m_driverNodes;
+}
+
+void SwitchboardControllabilityModel::setGraph(igraph::Graph* graph) {
+    ControllabilityModel::setGraph(graph);
+    m_driverNodes.clear();
+    clearControlPaths();
 }
 
 }        // end of namespaces

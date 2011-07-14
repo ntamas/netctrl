@@ -3,6 +3,8 @@
 #include <memory>
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/vertex.h>
+#include <igraph/cpp/generators/degree_sequence.h>
+#include <igraph/cpp/generators/erdos_renyi.h>
 #include <netctrl/model.h>
 
 #include "cmd_arguments.h"
@@ -79,6 +81,17 @@ public:
                 break;
         }
 
+        if (m_args.operationMode == MODE_DRIVER_NODES) {
+            return runDriverNodes();
+        } else if (m_args.operationMode == MODE_SIGNIFICANCE) {
+            return runSignificance();
+        }
+
+        return 0;
+    }
+
+    /// Runs the driver node calculation mode
+    int runDriverNodes() {
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
@@ -92,6 +105,58 @@ public:
                 cout << name.as<long int>() << '\n';
             }
         }
+
+        return 0;
+    }
+
+    /// Runs the signficance calculation mode
+    int runSignificance() {
+        size_t observedDriverNodeCount;
+        size_t numTrials = 100, i;
+        float numNodes = m_pGraph->vcount();
+        Vector counts;
+        
+        info(">> calculating control paths and driver nodes");
+        m_pModel->calculate();
+
+        observedDriverNodeCount = m_pModel->driverNodes().size();
+        info(">> found %d driver node(s)", observedDriverNodeCount);
+        cout << "Observed\t" << observedDriverNodeCount / numNodes << '\n';
+
+        // Testing Erdos-Renyi null model
+        info(">> testing Erdos-Renyi null model");
+        counts.clear();
+        for (i = 0; i < numTrials; i++) {
+            Graph graph = igraph::erdos_renyi_game_gnm(
+                    numNodes, m_pGraph->ecount(),
+                    m_pGraph->isDirected(), false);
+
+            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            pModel->setGraph(&graph);
+            pModel->calculate();
+
+            counts.push_back(pModel->driverNodes().size() / numNodes);
+        }
+        counts.sort();
+        cout << "ER\t" << counts.sum() / counts.size() << '\n';
+
+        // Testing configuration model
+        info(">> testing configuration model");
+        counts.clear();
+        for (i = 0; i < numTrials; i++) {
+            Graph graph = igraph::degree_sequence_game(
+                    m_pGraph->degree(V(m_pGraph.get()), IGRAPH_OUT),
+                    m_pGraph->degree(V(m_pGraph.get()), IGRAPH_IN),
+                    IGRAPH_DEGSEQ_SIMPLE);
+
+            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            pModel->setGraph(&graph);
+            pModel->calculate();
+
+            counts.push_back(pModel->driverNodes().size() / numNodes);
+        }
+        counts.sort();
+        cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
 
         return 0;
     }

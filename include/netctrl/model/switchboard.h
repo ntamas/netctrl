@@ -26,8 +26,10 @@ public:
     virtual ~SwitchboardControllabilityModel();
 
     virtual void calculate();
+    virtual ControllabilityModel* clone();
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
+    virtual void setGraph(igraph::Graph* graph);
 
 protected:
     /// Removes all the control paths from the previous run (if any)

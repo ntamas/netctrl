@@ -13,6 +13,11 @@ typedef enum {
     LIU_MODEL, SWITCHBOARD_MODEL
 } ModelType;
 
+/// Possible operation modes for the application
+typedef enum {
+    MODE_DRIVER_NODES, MODE_SIGNIFICANCE
+} OperationMode;
+
 /// Parses the command line arguments of the main app
 class CommandLineArguments {
 private:
@@ -41,6 +46,9 @@ public:
 
     /// Model type used by the application
     ModelType modelType;
+
+    /// Operation mode of the application (i.e. what we are going to calculate)
+    OperationMode operationMode;
 
 public:
 	/// Constructor

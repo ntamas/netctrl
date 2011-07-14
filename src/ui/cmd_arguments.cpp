@@ -11,7 +11,8 @@ using namespace std;
 using namespace SimpleOpt;
 
 enum {
-    HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL
+    HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL,
+    MODE
 };
 
 CommandLineArguments::CommandLineArguments(
@@ -19,7 +20,7 @@ CommandLineArguments::CommandLineArguments(
     m_executableName(programName), m_versionNumber(version),
     m_options(),
     inputFile(), verbosity(1), outputFile(),
-    modelType(LIU_MODEL) {
+    modelType(LIU_MODEL), operationMode(MODE_DRIVER_NODES) {
 
     addOption(USE_STDIN, "-", SO_NONE);
 
@@ -32,6 +33,7 @@ CommandLineArguments::CommandLineArguments(
 
     addOption(OUT_FILE, "-o", SO_REQ_SEP, "--output");
     addOption(MODEL,    "-m", SO_REQ_SEP, "--model");
+    addOption(MODE, "--mode", SO_REQ_SEP);
 }
 
 void CommandLineArguments::addOption(int id, const char* option,
@@ -109,6 +111,18 @@ void CommandLineArguments::parse(int argc, char** argv) {
                     modelType = SWITCHBOARD_MODEL;
                 else {
                     cerr << "Unknown model type: " << arg << '\n';
+                    ret = 1;
+                }
+                break;
+
+            case MODE:
+                arg = args.OptionArg() ? args.OptionArg() : "";
+                if (arg == "driver_nodes")
+                    operationMode = MODE_DRIVER_NODES;
+                else if (arg == "significance")
+                    operationMode = MODE_SIGNIFICANCE;
+                else {
+                    cerr << "Unknown operation mode: " << arg << '\n';
                     ret = 1;
                 }
                 break;

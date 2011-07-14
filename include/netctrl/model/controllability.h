@@ -24,6 +24,9 @@ public:
     /// Virtual destructor that does nothing
     virtual ~ControllabilityModel() {}
 
+    /// Creates an exact copy of this model
+    virtual ControllabilityModel* clone() = 0;
+
     /// Calculates the set of driver nodes and control paths
     /**
      * This is an abstract method that must be overridden in subclasses.
@@ -40,6 +43,10 @@ public:
     /// Returns the set of driver nodes after a successful calculation
     virtual igraph::Vector driverNodes() const = 0;
 
+    /// Sets the graph on which the controllability model will operate
+    virtual void setGraph(igraph::Graph* graph) {
+        m_pGraph = graph;
+    }
 };
 
 

@@ -32,11 +32,14 @@ public:
     virtual ~LiuControllabilityModel();
 
     virtual void calculate();
+    virtual ControllabilityModel* clone();
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
 
     DirectedMatching* matching();
     const DirectedMatching* matching() const;
+
+    virtual void setGraph(igraph::Graph* graph);
 
 protected:
     /// Removes all the control paths from the previous run (if any)
