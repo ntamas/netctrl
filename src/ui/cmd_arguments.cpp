@@ -119,6 +119,8 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 arg = args.OptionArg() ? args.OptionArg() : "";
                 if (arg == "driver_nodes")
                     operationMode = MODE_DRIVER_NODES;
+                else if (arg == "statistics")
+                    operationMode = MODE_STATISTICS;
                 else if (arg == "significance")
                     operationMode = MODE_SIGNIFICANCE;
                 else {

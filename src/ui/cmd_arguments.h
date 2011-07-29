@@ -15,7 +15,7 @@ typedef enum {
 
 /// Possible operation modes for the application
 typedef enum {
-    MODE_DRIVER_NODES, MODE_SIGNIFICANCE
+    MODE_DRIVER_NODES, MODE_STATISTICS, MODE_SIGNIFICANCE
 } OperationMode;
 
 /// Parses the command line arguments of the main app

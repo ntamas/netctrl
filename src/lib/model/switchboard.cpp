@@ -3,6 +3,8 @@
 #include <set>
 #include <stdexcept>
 #include <igraph/cpp/edge.h>
+#include <igraph/cpp/edge_iterator.h>
+#include <igraph/cpp/edge_selector.h>
 #include <igraph/cpp/vector_bool.h>
 #include <igraph/cpp/analysis/components.h>
 #include <igraph/cpp/generators/line_graph.h>
@@ -50,7 +52,36 @@ SwitchboardControllabilityModel::~SwitchboardControllabilityModel() {
 }
 
 igraph::Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
-    return Vector();
+    Vector degreeDiffs, outDegrees;
+    Vector result(m_pGraph->ecount());
+    EdgeSelector es = E(m_pGraph);
+    EdgeIterator eit(es);
+
+    m_pGraph->degree(&outDegrees, V(m_pGraph), IGRAPH_OUT, true);
+    m_pGraph->degree(&degreeDiffs,  V(m_pGraph), IGRAPH_IN,  true);
+    degreeDiffs -= outDegrees;
+
+    while (!eit.end()) {
+        Edge edge = *eit;
+        long int i = eit.get();
+        long int u = edge.source(), v = edge.destination();
+
+        if (degreeDiffs[u] == -1) {
+            /* source vertex will become balanced instead of divergent */
+            if (degreeDiffs[v] == 0) {
+                /* target vertex will become divergent instead of balanced */
+                // TODO
+            } else {
+                result[i] = -1;
+            }
+        } else if (degreeDiffs[v] == 0) {
+            /* target vertex will become divergent instead of balanced */
+            result[i] = 1;
+        }
+        ++eit;
+    }
+
+    return result;
 }
 
 void SwitchboardControllabilityModel::calculate() {

@@ -81,13 +81,19 @@ public:
                 break;
         }
 
-        if (m_args.operationMode == MODE_DRIVER_NODES) {
-            return runDriverNodes();
-        } else if (m_args.operationMode == MODE_SIGNIFICANCE) {
-            return runSignificance();
-        }
+        switch (m_args.operationMode) {
+            case MODE_DRIVER_NODES:
+                return runDriverNodes();
 
-        return 0;
+            case MODE_STATISTICS:
+                return runStatistics();
+
+            case MODE_SIGNIFICANCE:
+                return runSignificance();
+
+            default:
+                return 1;
+        }
     }
 
     /// Runs the driver node calculation mode
@@ -160,6 +166,39 @@ public:
 
         return 0;
     }
+
+    /// Runs the general statistics calculation mode
+    int runStatistics() {
+        float n = m_pGraph->vcount();
+        float m = m_pGraph->ecount();
+
+        info(">> calculating control paths and driver nodes");
+        m_pModel->calculate();
+
+        Vector driver_nodes = m_pModel->driverNodes();
+        info(">> found %d driver node(s)", driver_nodes.size());
+
+        cout << "Fraction of driver nodes = " << driver_nodes.size() / n << '\n';
+
+        Vector edge_classes = m_pModel->changesInDriverNodesAfterEdgeRemoval();
+        if (edge_classes.size() == m && !edge_classes.empty()) {
+            long int num_redundant = 0, num_ordinary = 0, num_critical = 0;
+            for (long int i = 0; i < m; i++) {
+                if (edge_classes[i] < 0)
+                    num_redundant++;
+                else if (edge_classes[i] == 0)
+                    num_ordinary++;
+                else
+                    num_critical++;
+            }
+            cout << "Fraction of redundant edges = " << num_redundant / m << '\n';
+            cout << "Fraction of ordinary edges = "  << num_ordinary  / m << '\n';
+            cout << "Fraction of critical edges = "  << num_critical  / m << '\n';
+        }
+
+        return 0;
+    }
+
 };
 
 int main(int argc, char** argv) {
