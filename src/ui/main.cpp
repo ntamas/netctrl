@@ -171,18 +171,16 @@ public:
     int runStatistics() {
         float n = m_pGraph->vcount();
         float m = m_pGraph->ecount();
+        long int num_driver;
+        long int num_redundant = 0, num_ordinary = 0, num_critical = 0;
 
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
+        num_driver = m_pModel->driverNodes().size();
 
-        Vector driver_nodes = m_pModel->driverNodes();
-        info(">> found %d driver node(s)", driver_nodes.size());
-
-        cout << "Fraction of driver nodes = " << driver_nodes.size() / n << '\n';
-
+        info(">> classifying edges");
         Vector edge_classes = m_pModel->changesInDriverNodesAfterEdgeRemoval();
         if (edge_classes.size() == m && !edge_classes.empty()) {
-            long int num_redundant = 0, num_ordinary = 0, num_critical = 0;
             for (long int i = 0; i < m; i++) {
                 if (edge_classes[i] < 0)
                     num_redundant++;
@@ -191,10 +189,12 @@ public:
                 else
                     num_critical++;
             }
-            cout << "Fraction of redundant edges = " << num_redundant / m << '\n';
-            cout << "Fraction of ordinary edges = "  << num_ordinary  / m << '\n';
-            cout << "Fraction of critical edges = "  << num_critical  / m << '\n';
         }
+
+        cout << num_driver << ' ' << num_redundant << ' '
+             << num_ordinary << ' ' << num_critical << '\n';
+        cout << num_driver / n << ' ' << num_redundant / m << ' '
+             << num_ordinary / m << ' ' << num_critical / m << '\n';
 
         return 0;
     }
