@@ -26,6 +26,7 @@ public:
     virtual ~SwitchboardControllabilityModel();
 
     virtual void calculate();
+    igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
     virtual ControllabilityModel* clone();
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
@@ -34,6 +35,18 @@ public:
 protected:
     /// Removes all the control paths from the previous run (if any)
     void clearControlPaths();
+
+private:
+    /**
+     * Old, unused implementation of \ref calculate().
+     *
+     * This implementation explicitly constructs the line graph, which is
+     * prohibitive for large networks. Also, we do not need the line graph
+     * because we can find the driver nodes just by looking at the original
+     * network.
+     */
+    void calculateOld();
+
 };
 
 }       // end of namespace

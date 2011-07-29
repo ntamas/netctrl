@@ -5,6 +5,10 @@
 
 namespace netctrl {
 
+igraph::Vector ControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+    return igraph::Vector();
+}
+
 std::string Stem::toString() const {
 	std::ostringstream oss;
 

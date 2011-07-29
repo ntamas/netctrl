@@ -33,6 +33,22 @@ public:
      */
     virtual void calculate() = 0;
 
+    /**
+     * \brief Returns a vector which shows how would the number of driver nodes
+     *        change after the removal of a given edge.
+     *
+     * This is an abstract method that \em may be overridden in subclasses.
+     *
+     * \return a vector containing a number for each edge of the graph, showing
+     *         the difference in the number of driver nodes before and after the
+     *         removal of the edge. Positive numbers indicate edges whose removal
+     *         increases the number of driver nodes. The function may also return
+     *         an empty vector indicating that such a calculation is not implemented
+     *         or not feasible.
+     */
+    virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+
+    //
     /// Returns a vector of control paths after a successful calculation
     /**
      * Pointers returned in this vector are owned by the model; they should

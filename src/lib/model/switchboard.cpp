@@ -3,6 +3,8 @@
 #include <set>
 #include <stdexcept>
 #include <igraph/cpp/edge.h>
+#include <igraph/cpp/vector_bool.h>
+#include <igraph/cpp/analysis/components.h>
 #include <igraph/cpp/generators/line_graph.h>
 #include <netctrl/model/liu.h>
 #include <netctrl/model/switchboard.h>
@@ -47,7 +49,60 @@ SwitchboardControllabilityModel::~SwitchboardControllabilityModel() {
     clearControlPaths();
 }
 
+igraph::Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+    return Vector();
+}
+
 void SwitchboardControllabilityModel::calculate() {
+    Vector inDegrees, outDegrees;
+    long int i, j, n = m_pGraph->vcount();
+    long int balancedCount = 0;
+
+#define IS_BALANCED(i) ((outDegrees[i] == inDegrees[i]) && outDegrees[i] > 0)
+
+    m_driverNodes.clear();
+    m_pGraph->degree(&inDegrees,  V(m_pGraph), IGRAPH_IN,  true);
+    m_pGraph->degree(&outDegrees, V(m_pGraph), IGRAPH_OUT, true);
+    
+    // Find divergent nodes, count balanced nodes
+    for (i = 0; i < n; i++) {
+        if (outDegrees[i] > inDegrees[i])
+            m_driverNodes.push_back(i);
+        else if (IS_BALANCED(i)) {
+            balancedCount++;
+        }
+    }
+
+    if (balancedCount > 0) {
+        // Find the connected components consisting of balanced nodes
+        // only.
+        Vector membership;
+        integer_t cluster_count;
+        clusters(*m_pGraph, &membership, 0, &cluster_count, IGRAPH_WEAK);
+
+        VectorBool balancedCluster(cluster_count);
+        balancedCluster.fill(true);
+        for (i = 0; i < n; i++) {
+            if (!IS_BALANCED(i)) {
+                balancedCluster[(long int)membership[i]] = false;
+            }
+        }
+
+        for (i = 0; i < n; i++) {
+            j = membership[i];
+            if (balancedCluster[j]) {
+                m_driverNodes.push_back(i);
+                balancedCluster[j] = false;
+            }
+        }
+    }
+
+#undef IS_BALANCED
+
+    // TODO: find control paths
+}
+
+void SwitchboardControllabilityModel::calculateOld() {
     // Construct the line graph first
     Graph lg(line_graph(*m_pGraph));
 
@@ -90,7 +145,7 @@ void SwitchboardControllabilityModel::calculate() {
         bool resolved = false;
 
         Bud* bud = dynamic_cast<Bud*>(path);
-        if (bud == 0 /* || bud->stem() != 0 */) {
+        if (bud == 0 || bud->stem() != 0) {
             it++;
             continue;       // not a bud without stem
         }
