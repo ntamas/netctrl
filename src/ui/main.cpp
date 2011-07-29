@@ -147,12 +147,14 @@ public:
         cout << "ER\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
-        info(">> testing configuration model");
+        Vector inDegrees, outDegrees;
+        m_pGraph->degree(&outDegrees, V(m_pGraph.get()), IGRAPH_OUT, true);
+        m_pGraph->degree(&inDegrees,  V(m_pGraph.get()), IGRAPH_IN,  true);
+
+        info(">> testing configuration model (preserving joint degree distribution)");
         counts.clear();
         for (i = 0; i < numTrials; i++) {
-            Graph graph = igraph::degree_sequence_game(
-                    m_pGraph->degree(V(m_pGraph.get()), IGRAPH_OUT),
-                    m_pGraph->degree(V(m_pGraph.get()), IGRAPH_IN),
+            Graph graph = igraph::degree_sequence_game(outDegrees, inDegrees,
                     IGRAPH_DEGSEQ_SIMPLE);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
@@ -163,6 +165,25 @@ public:
         }
         counts.sort();
         cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
+
+        // Testing configuration model
+        info(">> testing configuration model (destroying joint degree distribution)");
+        counts.clear();
+        for (i = 0; i < numTrials; i++) {
+            inDegrees.shuffle();
+            outDegrees.shuffle();
+
+            Graph graph = igraph::degree_sequence_game(outDegrees, inDegrees,
+                    IGRAPH_DEGSEQ_SIMPLE);
+
+            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            pModel->setGraph(&graph);
+            pModel->calculate();
+
+            counts.push_back(pModel->driverNodes().size() / numNodes);
+        }
+        counts.sort();
+        cout << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';
 
         return 0;
     }
