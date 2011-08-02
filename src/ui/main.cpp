@@ -1,6 +1,7 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
 #include <memory>
+#include <sstream>
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/vertex.h>
 #include <igraph/cpp/generators/degree_sequence.h>
@@ -13,7 +14,24 @@
 
 using namespace igraph;
 using namespace netctrl;
-using namespace std;
+
+
+/// Helper function to split a string around a delimiter character
+std::vector<std::string> &split(const std::string& s, char delim,
+        std::vector<std::string>& elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+/// Helper function to split a string around a delimiter character
+std::vector<std::string> split(const std::string& s, char delim) {
+    std::vector<std::string> elems;
+    return split(s, delim, elems);
+}
 
 class NetworkControllabilityApp {
 private:
@@ -53,8 +71,31 @@ public:
         std::auto_ptr<Graph> result;
 
         if (filename == "-") {
+            // Loading graph from standard input
             result.reset(new Graph(GraphUtil::readGraph(stdin, GRAPH_FORMAT_EDGELIST)));
+        } else if (filename.find("://") != filename.npos) {
+            // Generating graph from model
+            size_t pos = filename.find("://");
+            std::string model = filename.substr(0, pos);
+            std::vector<std::string> params = split(filename.substr(pos+3), ',');
+
+            if (model == "er") {
+                // Erdos-Renyi network
+                if (params.size() < 2) {
+                    error("ER generator requires two arguments: number of nodes "
+                            "and average degree");
+                    return result;    // points to null
+                }
+
+                long int n = atoi(params[0].c_str());
+                float k = atof(params[1].c_str());
+                return erdos_renyi_game_gnm(n, n*k, true, false);
+            } else {
+                error("Unknown graph generator: %s", model.c_str());
+                return result;   // points to null
+            }
         } else {
+            // Loading graph from file
             result.reset(new Graph(GraphUtil::readGraph(filename)));
             result->setAttribute("filename", filename);
         }
@@ -68,6 +109,9 @@ public:
 
         info(">> loading graph: %s", m_args.inputFile.c_str());
         m_pGraph = loadGraph(m_args.inputFile);
+        if (m_pGraph.get() == NULL)
+            return 2;
+
         info(">> graph is %s and has %ld vertices and %ld edges",
              m_pGraph->isDirected() ? "directed" : "undirected",
              (long)m_pGraph->vcount(), (long)m_pGraph->ecount());
@@ -106,9 +150,9 @@ public:
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
             if (name.type() == typeid(std::string)) {
-                cout << name.as<std::string>() << '\n';
+                std::cout << name.as<std::string>() << '\n';
             } else {
-                cout << name.as<long int>() << '\n';
+                std::cout << name.as<long int>() << '\n';
             }
         }
 
@@ -127,24 +171,24 @@ public:
 
         observedDriverNodeCount = m_pModel->driverNodes().size();
         info(">> found %d driver node(s)", observedDriverNodeCount);
-        cout << "Observed\t" << observedDriverNodeCount / numNodes << '\n';
+        std::cout << "Observed\t" << observedDriverNodeCount / numNodes << '\n';
 
         // Testing Erdos-Renyi null model
         info(">> testing Erdos-Renyi null model");
         counts.clear();
         for (i = 0; i < numTrials; i++) {
-            Graph graph = igraph::erdos_renyi_game_gnm(
+            std::auto_ptr<Graph> graph = igraph::erdos_renyi_game_gnm(
                     numNodes, m_pGraph->ecount(),
                     m_pGraph->isDirected(), false);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
-            pModel->setGraph(&graph);
+            pModel->setGraph(graph.get());
             pModel->calculate();
 
             counts.push_back(pModel->driverNodes().size() / numNodes);
         }
         counts.sort();
-        cout << "ER\t" << counts.sum() / counts.size() << '\n';
+        std::cout << "ER\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
         Vector inDegrees, outDegrees;
@@ -154,17 +198,18 @@ public:
         info(">> testing configuration model (preserving joint degree distribution)");
         counts.clear();
         for (i = 0; i < numTrials; i++) {
-            Graph graph = igraph::degree_sequence_game(outDegrees, inDegrees,
+            std::auto_ptr<Graph> graph =
+                igraph::degree_sequence_game(outDegrees, inDegrees,
                     IGRAPH_DEGSEQ_SIMPLE);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
-            pModel->setGraph(&graph);
+            pModel->setGraph(graph.get());
             pModel->calculate();
 
             counts.push_back(pModel->driverNodes().size() / numNodes);
         }
         counts.sort();
-        cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
+        std::cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
         info(">> testing configuration model (destroying joint degree distribution)");
@@ -173,17 +218,18 @@ public:
             inDegrees.shuffle();
             outDegrees.shuffle();
 
-            Graph graph = igraph::degree_sequence_game(outDegrees, inDegrees,
+            std::auto_ptr<Graph> graph =
+                igraph::degree_sequence_game(outDegrees, inDegrees,
                     IGRAPH_DEGSEQ_SIMPLE);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
-            pModel->setGraph(&graph);
+            pModel->setGraph(graph.get());
             pModel->calculate();
 
             counts.push_back(pModel->driverNodes().size() / numNodes);
         }
         counts.sort();
-        cout << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';
+        std::cout << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';
 
         return 0;
     }
@@ -212,10 +258,10 @@ public:
             }
         }
 
-        cout << num_driver << ' ' << num_redundant << ' '
-             << num_ordinary << ' ' << num_critical << '\n';
-        cout << num_driver / n << ' ' << num_redundant / m << ' '
-             << num_ordinary / m << ' ' << num_critical / m << '\n';
+        std::cout << num_driver << ' ' << num_redundant << ' '
+                  << num_ordinary << ' ' << num_critical << '\n';
+        std::cout << num_driver / n << ' ' << num_redundant / m << ' '
+                  << num_ordinary / m << ' ' << num_critical / m << '\n';
 
         return 0;
     }

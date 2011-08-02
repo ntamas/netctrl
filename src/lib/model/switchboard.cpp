@@ -135,11 +135,11 @@ void SwitchboardControllabilityModel::calculate() {
 
 void SwitchboardControllabilityModel::calculateOld() {
     // Construct the line graph first
-    Graph lg(line_graph(*m_pGraph));
+    std::auto_ptr<Graph> lg = line_graph(*m_pGraph);
 
     // Find the driver nodes in the line graph; these are the driver edges
     // in our model
-    LiuControllabilityModel model(&lg);
+    LiuControllabilityModel model(lg.get());
     model.calculate();
 
     // Get the control paths
@@ -188,7 +188,7 @@ void SwitchboardControllabilityModel::calculateOld() {
             Vector neis;
 
             // Get the predecessors of the node
-            neis = lg.neighbors(u, IGRAPH_IN);
+            neis = lg->neighbors(u, IGRAPH_IN);
             for (nodeIt2 = neis.begin(); nodeIt2 != neis.end(); nodeIt2++) {
                 // Does this node have an outgoing matched edge?
                 v = *nodeIt2;
@@ -217,7 +217,7 @@ void SwitchboardControllabilityModel::calculateOld() {
 
             if (!resolved) {
                 // Get the successors of the node
-                neis = lg.neighbors(*nodeIt, IGRAPH_OUT);
+                neis = lg->neighbors(*nodeIt, IGRAPH_OUT);
                 for (Vector::iterator nodeIt2 = neis.begin();
                         !resolved && nodeIt2 != neis.end(); nodeIt2++) {
                     // Does this node have an incoming matched edge?
