@@ -1,5 +1,6 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
+#include <deque>
 #include <set>
 #include <stdexcept>
 #include <igraph/cpp/edge.h>
@@ -49,39 +50,6 @@ Stem* findStemWithTip(std::vector<ControlPath*>& controlPaths, long int tip) {
 
 SwitchboardControllabilityModel::~SwitchboardControllabilityModel() {
     clearControlPaths();
-}
-
-igraph::Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
-    Vector degreeDiffs, outDegrees;
-    Vector result(m_pGraph->ecount());
-    EdgeSelector es = E(m_pGraph);
-    EdgeIterator eit(es);
-
-    m_pGraph->degree(&outDegrees, V(m_pGraph), IGRAPH_OUT, true);
-    m_pGraph->degree(&degreeDiffs,  V(m_pGraph), IGRAPH_IN,  true);
-    degreeDiffs -= outDegrees;
-
-    while (!eit.end()) {
-        Edge edge = *eit;
-        long int i = eit.get();
-        long int u = edge.source(), v = edge.destination();
-
-        if (degreeDiffs[u] == -1) {
-            /* source vertex will become balanced instead of divergent */
-            if (degreeDiffs[v] == 0) {
-                /* target vertex will become divergent instead of balanced */
-                // TODO
-            } else {
-                result[i] = -1;
-            }
-        } else if (degreeDiffs[v] == 0) {
-            /* target vertex will become divergent instead of balanced */
-            result[i] = 1;
-        }
-        ++eit;
-    }
-
-    return result;
 }
 
 void SwitchboardControllabilityModel::calculate() {
@@ -323,6 +291,129 @@ std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const 
 
 igraph::Vector SwitchboardControllabilityModel::driverNodes() const {
     return m_driverNodes;
+}
+
+igraph::Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+    Vector degreeDiffs, outDegrees;
+    Vector result(m_pGraph->ecount());
+    EdgeSelector es = E(m_pGraph);
+    EdgeIterator eit(es);
+
+    m_pGraph->degree(&outDegrees, V(m_pGraph), IGRAPH_OUT, true);
+    m_pGraph->degree(&degreeDiffs,  V(m_pGraph), IGRAPH_IN,  true);
+    degreeDiffs -= outDegrees;
+
+    while (!eit.end()) {
+        Edge edge = *eit;
+        long int i = eit.get();
+        long int u = edge.source(), v = edge.destination();
+
+        if (degreeDiffs[u] == -1) {
+            /* source vertex will become balanced instead of divergent */
+            result[i]--;
+        }
+        if (degreeDiffs[v] == 0) {
+            /* target vertex will become divergent instead of balanced */
+            result[i]++;
+        }
+
+        /* Treating special cases */
+        if (degreeDiffs[u] == 0 && degreeDiffs[v] == 0) {
+            /* u and v may potentially have been part of a balanced component.
+             * In this case, the component already has a driver node before
+             * the removal, so we will have to decrease result[i] by 1 */
+            if (isInBalancedComponent(u, degreeDiffs))
+                result[i]--;
+        }
+        if (degreeDiffs[v] == 1) {
+            /* v is convergent but will become balanced. If all its neighbors
+             * are balanced (except u), we may suspect that it becomes part
+             * of a balanced component, which will require one more driver
+             * node, so we will have to increase result[i] by 1 */
+            degreeDiffs[v]--; degreeDiffs[u]++;
+            if (isInBalancedComponentExcept(v, u, degreeDiffs))
+                result[i]++;
+            degreeDiffs[v]++; degreeDiffs[u]--;
+        }
+        if (degreeDiffs[u] == -1) {
+            /* u is divergent but will become balanced. If all its neighbors
+             * are balanced (except v), we may suspect that it becomes part
+             * of a balanced component, which will require one more driver
+             * node, so we will have to increase result[i] by 1 */
+            degreeDiffs[v]--; degreeDiffs[u]++;
+            if (isInBalancedComponentExcept(u, v, degreeDiffs))
+                result[i]++;
+            degreeDiffs[v]++; degreeDiffs[u]--;
+        }
+
+        ++eit;
+    }
+
+    return result;
+}
+
+std::vector<EdgeClass> SwitchboardControllabilityModel::edgeClasses() const {
+    Vector diffs = changesInDriverNodesAfterEdgeRemoval();
+    size_t i, n = diffs.size();
+    std::vector<EdgeClass> result(n);
+    for (i = 0; i < n; i++) {
+        if (diffs[i] < 0)
+            result[i] = EDGE_DISTINGUISHED;
+        else if (diffs[i] == 0)
+            result[i] = EDGE_REDUNDANT;
+        else
+            result[i] = EDGE_CRITICAL;
+    }
+    return result;
+}
+
+bool SwitchboardControllabilityModel::isInBalancedComponent(
+        long int v, const Vector& degreeDiffs) const {
+    return isInBalancedComponentExcept(v, -1, degreeDiffs);
+}
+
+bool SwitchboardControllabilityModel::isInBalancedComponentExcept(
+        long int v, long int u, const Vector& degreeDiffs) const {
+    Vector neis;
+    int i, j;
+    bool result = true;
+
+    /* Is v balanced? If not, we can return early */
+    if (degreeDiffs[v] != 0)
+        return false;
+
+    /* Does v have any neighbors apart from u? If not, v is in a
+     * _trivial_ balanced component, so we return false */
+    neis = m_pGraph->neighbors(v, IGRAPH_ALL);
+    if (neis.empty() || (neis.size() == 1 && neis[0] == u))
+        return false;
+
+    /* Prepare the queue */
+    VectorBool visited(m_pGraph->vcount());
+    std::deque<long int> q;
+    q.push_back(v); visited[v] = true;
+    if (u >= 0)
+        visited[u] = true;
+    
+    while (!q.empty()) {
+        v = q.front(); q.pop_front();
+        neis = m_pGraph->neighbors(v, IGRAPH_ALL);
+        j = neis.size();
+        for (i = 0; i < j; i++) {
+            u = neis[i];
+            if (visited[u])
+                continue;
+            if (degreeDiffs[u] != 0) {
+                result = false;
+                q.clear();
+                break;
+            }
+            q.push_back(u);
+            visited[u] = true;
+        }
+    }
+
+    return result;
 }
 
 void SwitchboardControllabilityModel::setGraph(igraph::Graph* graph) {

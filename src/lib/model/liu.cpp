@@ -5,6 +5,7 @@
 #include <igraph/cpp/matching.h>
 #include <igraph/cpp/vector_bool.h>
 #include <igraph/cpp/vector_long.h>
+#include <igraph/cpp/analysis/non_simple.h>
 #include <netctrl/model/liu.h>
 
 namespace netctrl {

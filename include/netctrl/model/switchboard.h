@@ -30,6 +30,7 @@ public:
     virtual ControllabilityModel* clone();
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
+    virtual std::vector<EdgeClass> edgeClasses() const;
     virtual void setGraph(igraph::Graph* graph);
 
 protected:
@@ -47,6 +48,18 @@ private:
      */
     void calculateOld();
 
+    /**
+     * Checks whether the given vertex v is part of a non-trivial
+     * balanced component.
+     */
+    bool isInBalancedComponent(long int v, const igraph::Vector& degreeDiffs) const;
+
+    /**
+     * Checks whether the given vertex v will be part of a non-trivial
+     * balanced component after removing its edge to vertex u.
+     */
+    bool isInBalancedComponentExcept(long int v, long int u,
+            const igraph::Vector& degreeDiffs) const;
 };
 
 }       // end of namespace

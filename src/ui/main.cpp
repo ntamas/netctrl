@@ -239,29 +239,40 @@ public:
         float n = m_pGraph->vcount();
         float m = m_pGraph->ecount();
         long int num_driver;
-        long int num_redundant = 0, num_ordinary = 0, num_critical = 0;
+        long int num_redundant = 0, num_ordinary = 0, num_critical = 0, num_distinguished = 0;
 
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
         num_driver = m_pModel->driverNodes().size();
 
         info(">> classifying edges");
-        Vector edge_classes = m_pModel->changesInDriverNodesAfterEdgeRemoval();
+        std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
         if (edge_classes.size() == m && !edge_classes.empty()) {
             for (long int i = 0; i < m; i++) {
-                if (edge_classes[i] < 0)
+                if (edge_classes[i] == EDGE_REDUNDANT)
                     num_redundant++;
-                else if (edge_classes[i] == 0)
+                else if (edge_classes[i] == EDGE_ORDINARY)
                     num_ordinary++;
+                else if (edge_classes[i] == EDGE_DISTINGUISHED)
+                    num_distinguished++;
                 else
                     num_critical++;
             }
         }
 
-        std::cout << num_driver << ' ' << num_redundant << ' '
-                  << num_ordinary << ' ' << num_critical << '\n';
-        std::cout << num_driver / n << ' ' << num_redundant / m << ' '
-                  << num_ordinary / m << ' ' << num_critical / m << '\n';
+        info(">> order is as follows:");
+        info(">> driver nodes; distinguished, redundant, ordinary, critical edges");
+
+        std::cout << num_driver << ' '
+                  << num_distinguished << ' '
+                  << num_redundant << ' '
+                  << num_ordinary << ' '
+                  << num_critical << '\n';
+        std::cout << num_driver / n << ' '
+                  << num_distinguished / m << ' '
+                  << num_redundant / m << ' '
+                  << num_ordinary / m << ' '
+                  << num_critical / m << '\n';
 
         return 0;
     }

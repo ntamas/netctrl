@@ -10,6 +10,14 @@ namespace netctrl {
 
 class ControlPath;
 
+/// Edge classes in controllability models
+typedef enum {
+    EDGE_ORDINARY,
+    EDGE_REDUNDANT,
+    EDGE_CRITICAL,
+    EDGE_DISTINGUISHED
+} EdgeClass;
+
 /// Abstract superclass for controllability models
 class ControllabilityModel {
 protected:
@@ -48,7 +56,6 @@ public:
      */
     virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
 
-    //
     /// Returns a vector of control paths after a successful calculation
     /**
      * Pointers returned in this vector are owned by the model; they should
@@ -58,6 +65,24 @@ public:
 
     /// Returns the set of driver nodes after a successful calculation
     virtual igraph::Vector driverNodes() const = 0;
+
+    /**
+     * \brief Returns a vector that classifies edges into four classes: redundant,
+     *        ordinary, critical or distinguished.
+     *
+     * An edge is redundant if its removal does not change the set of driver nodes
+     * in \em any control configuration; critical if its removal always requires
+     * us to add at least one extra driver node in \em any control configuration,
+     * and \em distinguished if its removal decreases the number of driver nodes.
+     * Otherwise it is ordinary.
+     *
+     * Note that the Liu controllability model contains no distinguished edges,
+     * and the switchboard model contains no ordinary edges.
+     *
+     * \returns  a vector classifying the edges into classes, or an empty vector
+     *           if the operation is not implemented for a given model.
+     */
+    virtual std::vector<EdgeClass> edgeClasses() const;
 
     /// Sets the graph on which the controllability model will operate
     virtual void setGraph(igraph::Graph* graph) {
@@ -85,6 +110,9 @@ public:
     void appendNode(long int node) {
         m_nodes.push_back(node);
     }
+
+    /// Returns the edges involved in the control path
+    virtual igraph::Vector edges(const igraph::Graph& graph) const = 0;
 
     /// Returns the nodes involved in the control path
     igraph::Vector& nodes() {
@@ -119,6 +147,9 @@ public:
     /// Creates a stem with the given nodes
     explicit Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
 
+    /// Returns the edges involved in the stem
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
     /// Returns the root of the stem (i.e. the first vertex)
     long int root() const {
         return m_nodes.front();
@@ -150,6 +181,9 @@ public:
     /// Creates a bud with the given nodes
     explicit Bud(const igraph::Vector& nodes, const Stem* pStem = 0)
         : ControlPath(nodes), m_pStem(pStem) {}
+
+    /// Returns the edges involved in the bud
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
 
     /// Attaches the bud to a stem
     void setStem(Stem* pStem) {

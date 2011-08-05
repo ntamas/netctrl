@@ -9,6 +9,23 @@ igraph::Vector ControllabilityModel::changesInDriverNodesAfterEdgeRemoval() cons
     return igraph::Vector();
 }
 
+std::vector<EdgeClass> ControllabilityModel::edgeClasses() const {
+    return std::vector<EdgeClass>();
+}
+
+igraph::Vector Stem::edges(const igraph::Graph& graph) const {
+    igraph::Vector result;
+    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
+    igraph::Vector::const_iterator end = m_nodes.end();
+
+	while (it2 != end) {
+        result.push_back(graph.get_eid(*it, *it2));
+        it++; it2++;
+    }
+
+    return result;
+}
+
 std::string Stem::toString() const {
 	std::ostringstream oss;
 
@@ -18,6 +35,30 @@ std::string Stem::toString() const {
 	}
 
 	return oss.str();
+}
+
+igraph::Vector Bud::edges(const igraph::Graph& graph) const {
+    igraph::Vector result;
+
+    if (m_nodes.size() == 0)
+        return result;
+    if (m_nodes.size() == 1) {
+        long int eid = graph.get_eid(m_nodes.front(), m_nodes.front());
+        if (eid >= 0)
+            result.push_back(eid);
+        return result;
+    }
+
+    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
+    igraph::Vector::const_iterator end = m_nodes.end();
+
+	while (it2 != end) {
+        result.push_back(graph.get_eid(*it, *it2));
+        it++; it2++;
+    }
+    result.push_back(graph.get_eid(*it, m_nodes.front()));
+
+    return result;
 }
 
 std::string Bud::toString() const {
