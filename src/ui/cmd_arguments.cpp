@@ -119,6 +119,8 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 arg = args.OptionArg() ? args.OptionArg() : "";
                 if (arg == "driver_nodes")
                     operationMode = MODE_DRIVER_NODES;
+                else if (arg == "control_paths")
+                    operationMode = MODE_CONTROL_PATHS;
                 else if (arg == "statistics")
                     operationMode = MODE_STATISTICS;
                 else if (arg == "significance")
@@ -169,5 +171,9 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "    -q, --quiet         quiet mode (less output, only errors)\n"
           "\n"
           "    -m, --model         selects the controllability model to use.\n"
-          "                        Supported models: 'liu', 'switchboard'\n";
+          "                        Supported models: liu, switchboard.\n"
+          "                        Default: liu.\n"
+          "    --mode              selects the mode in which the application will operate.\n"
+          "                        Supported modes: driver_nodes, control_paths,\n"
+          "                        statistics, significance. Default: driver_nodes.\n";
 }

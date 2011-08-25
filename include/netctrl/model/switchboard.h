@@ -39,16 +39,6 @@ protected:
 
 private:
     /**
-     * Old, unused implementation of \ref calculate().
-     *
-     * This implementation explicitly constructs the line graph, which is
-     * prohibitive for large networks. Also, we do not need the line graph
-     * because we can find the driver nodes just by looking at the original
-     * network.
-     */
-    void calculateOld();
-
-    /**
      * Checks whether the given vertex v is part of a non-trivial
      * balanced component.
      */
@@ -60,6 +50,38 @@ private:
      */
     bool isInBalancedComponentExcept(long int v, long int u,
             const igraph::Vector& degreeDiffs) const;
+};
+
+/// Control path that represents a directed open walk
+class OpenWalk : public ControlPath {
+public:
+    /// Creates an empty open walk
+    OpenWalk() : ControlPath() {}
+
+    /// Creates an open walk with the given nodes
+    explicit OpenWalk(const igraph::Vector& nodes) : ControlPath(nodes) {}
+
+    /// Returns the edges involved in the open walk
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns a string representation of the open walk
+    virtual std::string toString() const;
+};
+
+/// Control path that represents a closed walk
+class ClosedWalk : public ControlPath {
+public:
+    /// Creates a closed walk
+    ClosedWalk() : ControlPath() {}
+
+    /// Creates a closed walk with the given nodes
+    explicit ClosedWalk(const igraph::Vector& nodes) : ControlPath(nodes) {}
+
+    /// Returns the edges involved in the closed walk
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns a string representation of the closed walk
+    virtual std::string toString() const;
 };
 
 }       // end of namespace

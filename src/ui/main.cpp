@@ -126,6 +126,9 @@ public:
         }
 
         switch (m_args.operationMode) {
+            case MODE_CONTROL_PATHS:
+                return runControlPaths();
+
             case MODE_DRIVER_NODES:
                 return runDriverNodes();
 
@@ -138,6 +141,21 @@ public:
             default:
                 return 1;
         }
+    }
+
+    /// Runs the control path calculation mode
+    int runControlPaths() {
+        info(">> calculating control paths");
+        m_pModel->calculate();
+
+        std::vector<ControlPath*> paths = m_pModel->controlPaths();
+        info(">> found %d control path(s)", paths.size());
+        for (std::vector<ControlPath*>::const_iterator it = paths.begin();
+                it != paths.end(); it++) {
+            std::cout << (*it)->toString() << '\n';
+        }
+
+        return 0;
     }
 
     /// Runs the driver node calculation mode

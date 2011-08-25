@@ -46,6 +46,67 @@ protected:
     void clearControlPaths();
 };
 
+/// Control path that represents a stem
+class Stem : public ControlPath {
+public:
+    /// Creates an empty stem
+    Stem() : ControlPath() {}
+
+    /// Creates a stem with the given nodes
+    explicit Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
+
+    /// Returns the edges involved in the stem
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns the root of the stem (i.e. the first vertex)
+    long int root() const {
+        return m_nodes.front();
+    }
+
+    /// Returns the tip of the stem (i.e. the last vertex)
+    long int tip() const {
+        return m_nodes.back();
+    }
+
+    /// Returns a string representation of the stem
+    virtual std::string toString() const;
+};
+
+/// Control path that represents a bud
+class Bud : public ControlPath {
+protected:
+    /// The stem this bud is attached to.
+    /**
+     * When this is null, it means that the bud is attached to an input node
+     * directly.
+     */
+    const Stem* m_pStem;
+
+public:
+    /// Creates an empty bud
+    Bud() : ControlPath(), m_pStem(0) {}
+
+    /// Creates a bud with the given nodes
+    explicit Bud(const igraph::Vector& nodes, const Stem* pStem = 0)
+        : ControlPath(nodes), m_pStem(pStem) {}
+
+    /// Returns the edges involved in the bud
+    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Attaches the bud to a stem
+    void setStem(Stem* pStem) {
+        m_pStem = pStem;
+    }
+
+    /// Returns the stem the bud is attached to
+    const Stem* stem() const {
+        return m_pStem;
+    }
+
+    /// Returns a string representation of the bud
+    virtual std::string toString() const;
+};
+
 }       // end of namespace
 
 #endif  // NETCTRL_MODEL_LIU_H
