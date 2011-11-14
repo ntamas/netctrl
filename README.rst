@@ -18,18 +18,18 @@ added later.
 Requirements
 ============
 
-  - The most recent, up-to-date, bleeding-edge version of igraph_. Really.
-    You need at least igraph_ 0.6 because that's where the bipartite
-    matching algorithm was added. At the time of writing, igraph_ 0.6
-    has not been released yet, and even the bipartite matching algorithm is
-    implemented in a separate branch only, so you have to check out the
-    ``0.6-matching`` branch from their `Launchpad repository`_ and compile
-    it yourself. In case there is no such branch, this means that the branch
-    has already been merged into ``0.6-main``, so check out ``0.6-main``
-    instead.
+- The most recent, up-to-date, bleeding-edge version of igraph_. Really.
+You need at least igraph_ 0.6 because that's where the bipartite
+matching algorithm was added. At the time of writing, igraph_ 0.6
+has not been released yet, and even the bipartite matching algorithm is
+implemented in a separate branch only, so you have to check out the
+``0.6-matching`` branch from their `Launchpad repository`_ and compile
+it yourself. In case there is no such branch, this means that the branch
+has already been merged into ``0.6-main``, so check out ``0.6-main``
+instead.
 
-  - CMake_ to generate the makefiles (or the project file if you are using
-    Visual Studio).
+- CMake_ to generate the makefiles (or the project file if you are using
+Visual Studio).
 
 .. _igraph: http://igraph.sourceforge.net
 .. _Launchpad repository: http://launchpad.net/igraph/
@@ -90,22 +90,22 @@ The program may operate in one of the following four modes at the moment:
    The average values are then listed for each null model and for the actual
    network. The following null models are tested:
 
-     - Erdos-Renyi random networks (``ER``).
+   - Erdos-Renyi random networks (``ER``).
 
-     - Configuration model preserving the joint degree distribution
-       (``Configuration``).
+   - Configuration model preserving the joint degree distribution
+     (``Configuration``).
 
-     - Configuration model that preserves the in- and out-degree sequences but
-       not the joint degree distribution (``Configuration_no_joint``).
+   - Configuration model that preserves the in- and out-degree sequences but
+     not the joint degree distribution (``Configuration_no_joint``).
 
 The mode can be selected with the ``--mode`` (or ``-M``) command line option.
 You should also select the controllability model with the ``--model`` (or ``-m``)
 option as follows:
 
-  - ``switchboard`` selects the switchboard model of Nepusz and Vicsek [2]_
-    (this is the default).
+- ``switchboard`` selects the switchboard model of Nepusz and Vicsek [2]_
+(this is the default).
 
-  - ``liu`` selects the linear nodal dynamic model of Liu et al [1]_.
+- ``liu`` selects the linear nodal dynamic model of Liu et al [1]_.
 
 Finally, you may specify an output file (``--output``, ``--o``), suppress most
 of the output of the program (``--quiet``, ``--q``) or ask for the command
@@ -116,19 +116,19 @@ Input formats
 
 ``netctrl`` supports the following input formats:
 
-  - Simple edge list format (``.txt``) where each line contains two *numbers*
-    corresponding to the source and target vertex IDs. Vertex IDs must be from
-    0 to *n*-1, where *n* is the total number of vertices.
+- Simple edge list format (``.txt``) where each line contains two *numbers*
+  corresponding to the source and target vertex IDs. Vertex IDs must be from
+  0 to *n*-1, where *n* is the total number of vertices.
 
-  - Symbolic edge list format (``.ncol``, also known as the NCOL_ format). In
-    this format, each line contains the name of the source and target vertex.
-    Names may be arbitrary strings that do not contain whitespaces.
+- Symbolic edge list format (``.ncol``, also known as the NCOL_ format). In
+  this format, each line contains the name of the source and target vertex.
+  Names may be arbitrary strings that do not contain whitespaces.
 
-  - LGL_ format (``.lgl``)
+- LGL_ format (``.lgl``)
 
-  - GraphML_ format (``.graphml``)
+- GraphML_ format (``.graphml``)
 
-  - GML_ format (``.gml``)
+- GML_ format (``.gml``)
 
 .. _LGL: http://lgl.sourceforge.net/#FileFormat
 .. _NCOL: http://lgl.sourceforge.net/#FileFormat
