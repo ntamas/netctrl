@@ -16,6 +16,8 @@ GraphFormat GraphUtil::detectFormat(const string& filename) {
     
     string extension = filename.substr(idx + 1);
     transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    if (extension == "gml")
+        return GRAPH_FORMAT_GML;
     if (extension == "ncol")
         return GRAPH_FORMAT_NCOL;
     if (extension == "lgl")
@@ -66,6 +68,10 @@ Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format, bool directed) {
 
         case GRAPH_FORMAT_GRAPHML:
             result = read_graphml(fptr);
+            break;
+
+        case GRAPH_FORMAT_GML:
+            result = read_gml(fptr);
             break;
 
         default:

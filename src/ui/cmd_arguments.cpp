@@ -20,7 +20,7 @@ CommandLineArguments::CommandLineArguments(
     m_executableName(programName), m_versionNumber(version),
     m_options(),
     inputFile(), verbosity(1), outputFile(),
-    modelType(LIU_MODEL), operationMode(MODE_DRIVER_NODES) {
+    modelType(SWITCHBOARD_MODEL), operationMode(MODE_DRIVER_NODES) {
 
     addOption(USE_STDIN, "-", SO_NONE);
 
@@ -33,7 +33,7 @@ CommandLineArguments::CommandLineArguments(
 
     addOption(OUT_FILE, "-o", SO_REQ_SEP, "--output");
     addOption(MODEL,    "-m", SO_REQ_SEP, "--model");
-    addOption(MODE, "--mode", SO_REQ_SEP);
+    addOption(MODE,     "-M", SO_REQ_SEP, "--mode");
 }
 
 void CommandLineArguments::addOption(int id, const char* option,
@@ -172,8 +172,10 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "\n"
           "    -m, --model         selects the controllability model to use.\n"
           "                        Supported models: liu, switchboard.\n"
-          "                        Default: liu.\n"
-          "    --mode              selects the mode in which the application will operate.\n"
+          "                        Default: switchboard.\n"
+          "    -M, --mode          selects the mode in which the application will operate.\n"
           "                        Supported modes: driver_nodes, control_paths,\n"
-          "                        statistics, significance. Default: driver_nodes.\n";
+          "                        statistics, significance. Default: driver_nodes.\n"
+          "    -o, --output        specifies the name of the output file where the results\n"
+          "                        should be written.\n";
 }
