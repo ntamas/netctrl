@@ -18,16 +18,16 @@ added later.
 Precompiled binaries
 ====================
 
-Follow `this link <http://hal.elte.hu/~nepusz/files/netctrl>`_ for
-precompiled packages for Linux systems running on 64-bit processors.
+Follow `this link <http://hal.elte.hu/~nepusz/files/netctrl>`_ for precompiled
+packages for Linux systems running on 32-bit or 64-bit processors.
 
-If you are running a different system (e.g., Windows or Mac OS X) or you
-are on a 32-bit architecture, you have to compile ``netctrl`` yourself;
-please proceed to the `Compiling from source code`_ section. You must
-also compile ``netctrl`` yourself if you need the bleeding edge version
-as the packages at the above URL are not guaranteed to be updated regularly.
-However, they could safely be used to check out ``netctrl`` quickly without
-having to go through all the hassle with compiling ``netctrl`` from source.
+If you are running a different system (e.g., Windows or Mac OS X), you have to
+compile ``netctrl`` yourself; please proceed to the `Compiling from source
+code`_ section. You must also compile ``netctrl`` yourself if you need the
+bleeding edge version as the packages at the above URL are not guaranteed to be
+updated regularly.  However, they could safely be used to check out ``netctrl``
+quickly without having to go through all the hassle with compiling ``netctrl``
+from source.
 
 If you are using a precompiled binary, please proceed to the Usage_ section
 for usage instructions.

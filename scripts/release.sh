@@ -16,10 +16,10 @@ mv netctrl*.tar.gz ../
 cd ../../..
 
 # i386 build
-# mkdir -p $DIR/i386
-# cd $DIR/i386
-# cmake -DCMAKE_TOOLCHAIN_FILE=etc/cmake/release-i386.conf ../../..
-# make package
-# mv netctrl*.tar.gz ../
-# cd ../../..
+mkdir -p $DIR/i386
+cd $DIR/i386
+cmake -DCMAKE_TOOLCHAIN_FILE=etc/cmake/release-i386.conf ../../..
+make package
+mv netctrl*.tar.gz ../
+cd ../../..
 
