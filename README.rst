@@ -18,10 +18,8 @@ added later.
 Precompiled binaries
 ====================
 
-Precompiled packages for Linux systems running on 64-bit processors are
-provided here_:
-
-.. _here: http://hal.elte.hu/~nepusz/files/netctrl/
+Follow `this link <http://hal.elte.hu/~nepusz/files/netctrl>`_ for
+precompiled packages for Linux systems running on 64-bit processors.
 
 If you are running a different system (e.g., Windows or Mac OS X) or you
 are on a 32-bit architecture, you have to compile ``netctrl`` yourself;
@@ -125,7 +123,7 @@ You should also select the controllability model with the ``--model`` (or ``-m``
 option as follows:
 
 - ``switchboard`` selects the switchboard model of Nepusz and Vicsek [2]_
-(this is the default).
+  (this is the default).
 
 - ``liu`` selects the linear nodal dynamic model of Liu et al [1]_.
 
