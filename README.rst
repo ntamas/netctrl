@@ -15,8 +15,30 @@ currently implements the controllability model of Liu et al [1]_ and the
 switchboard dynamics model of Nepusz and Vicsek [2]_. Other models might be
 added later.
 
+Precompiled binaries
+====================
+
+Precompiled packages for Linux systems running on 64-bit processors are
+provided here_:
+
+.. _here: http://hal.elte.hu/~nepusz/files/netctrl/
+
+If you are running a different system (e.g., Windows or Mac OS X) or you
+are on a 32-bit architecture, you have to compile ``netctrl`` yourself;
+please proceed to the `Compiling from source code`_ section. You must
+also compile ``netctrl`` yourself if you need the bleeding edge version
+as the packages at the above URL are not guaranteed to be updated regularly.
+However, they could safely be used to check out ``netctrl`` quickly without
+having to go through all the hassle with compiling ``netctrl`` from source.
+
+If you are using a precompiled binary, please proceed to the Usage_ section
+for usage instructions.
+
+Compiling from source code
+==========================
+
 Requirements
-============
+------------
 
 - The most recent, up-to-date, bleeding-edge version of igraph_. Really.
   You need at least igraph_ 0.6 because that's where the bipartite
@@ -35,8 +57,8 @@ Requirements
 .. _Launchpad repository: http://launchpad.net/igraph/
 .. _CMake: http://www.cmake.org
 
-Compiling from source code
-==========================
+Compiling using ``cmake`` and ``make``
+--------------------------------------
 
 These instructions are for Linux or Mac OS X and assume that igraph_ is
 installed in a way that CMake can figure out automatically where it is.
