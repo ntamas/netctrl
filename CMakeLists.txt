@@ -68,6 +68,22 @@ include_directories(${igraph_INCLUDE_DIRS}
 					${CMAKE_CURRENT_SOURCE_DIR}/vendor/igraphpp/include)
 
 #####################################################################
+# Set up CPack
+#####################################################################
+
+set(CPACK_PACKAGE_VERSION_MAJOR ${NETCTRL_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${NETCTRL_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_STRIP_FILES "bin/netctrl")
+include(CPack)
+
+install(FILES README.rst
+        PERMISSIONS OWNER_READ OWNER_WRITE
+                    GROUP_READ WORLD_READ
+        DESTINATION .)
+
+#####################################################################
 # Process subdirectories
 #####################################################################
 
