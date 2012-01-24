@@ -59,6 +59,11 @@ public:
     /// Returns the edges involved in the stem
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
 
+    /// Returns \c true since each stem needs an independent input signal
+    virtual bool needsInputSignal() const {
+        return true;
+    }
+
     /// Returns the root of the stem (i.e. the first vertex)
     long int root() const {
         return m_nodes.front();
@@ -93,6 +98,11 @@ public:
 
     /// Returns the edges involved in the bud
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns \c false since buds do not need independent input signals
+    virtual bool needsInputSignal() const {
+        return false;
+    }
 
     /// Attaches the bud to a stem
     void setStem(Stem* pStem) {

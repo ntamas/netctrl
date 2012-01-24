@@ -117,6 +117,9 @@ public:
     /// Returns the edges involved in the control path
     virtual igraph::Vector edges(const igraph::Graph& graph) const = 0;
 
+    /// Returns whether the control path needs an independent input signal
+    virtual bool needsInputSignal() const = 0;
+
     /// Returns the nodes involved in the control path
     igraph::Vector& nodes() {
         return m_nodes;

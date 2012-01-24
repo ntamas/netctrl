@@ -90,6 +90,11 @@ public:
     /// Returns the edges involved in the open walk
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
 
+    /// Returns \c true since each open walk needs an input signal
+    virtual bool needsInputSignal() const {
+        return true;
+    }
+
     /// Returns a string representation of the open walk
     virtual std::string toString() const;
 };
@@ -102,6 +107,11 @@ public:
 
     /// Creates a closed walk with the given nodes
     explicit ClosedWalk(const igraph::Vector& nodes) : ControlPath(nodes) {}
+
+    /// Returns \c false since closed walks do not require independent input signals
+    virtual bool needsInputSignal() const {
+        return false;
+    }
 
     /// Returns the edges involved in the closed walk
     virtual igraph::Vector edges(const igraph::Graph& graph) const;

@@ -140,7 +140,7 @@ float SwitchboardControllabilityModel::controllability() const {
             numPaths = 0;
             for (std::vector<ControlPath*>::const_iterator it = m_controlPaths.begin();
                     it != m_controlPaths.end(); ++it) {
-                if (dynamic_cast<OpenWalk*>(*it) != 0) {
+                if ((*it)->needsInputSignal()) {
                     numPaths++;
                 }
             }
