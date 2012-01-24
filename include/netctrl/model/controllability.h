@@ -56,6 +56,9 @@ public:
      */
     virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
 
+    /// Returns the controllability measure of the model after a successful calculation
+    virtual float controllability() const = 0;
+
     /// Returns a vector of control paths after a successful calculation
     /**
      * Pointers returned in this vector are owned by the model; they should

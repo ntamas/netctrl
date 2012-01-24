@@ -12,7 +12,7 @@ using namespace SimpleOpt;
 
 enum {
     HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL,
-    MODE
+    MODE, USE_EDGE
 };
 
 CommandLineArguments::CommandLineArguments(
@@ -20,7 +20,9 @@ CommandLineArguments::CommandLineArguments(
     m_executableName(programName), m_versionNumber(version),
     m_options(),
     inputFile(), verbosity(1), outputFile(),
-    modelType(SWITCHBOARD_MODEL), operationMode(MODE_DRIVER_NODES) {
+    modelType(SWITCHBOARD_MODEL), operationMode(MODE_DRIVER_NODES),
+    useEdgeMeasure(false)
+{
 
     addOption(USE_STDIN, "-", SO_NONE);
 
@@ -34,6 +36,8 @@ CommandLineArguments::CommandLineArguments(
     addOption(OUT_FILE, "-o", SO_REQ_SEP, "--output");
     addOption(MODEL,    "-m", SO_REQ_SEP, "--model");
     addOption(MODE,     "-M", SO_REQ_SEP, "--mode");
+
+    addOption(USE_EDGE, "-e", SO_NONE, "--edge");
 }
 
 void CommandLineArguments::addOption(int id, const char* option,
@@ -131,6 +135,11 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 }
                 break;
 
+            /* Processing advanced algorithm parameters */
+            case USE_EDGE:
+                useEdgeMeasure = true;
+                break;
+
             default:
                 arg = args.OptionArg() ? args.OptionArg() : "";
                 ret = handleOption(args.OptionId(), arg);
@@ -170,6 +179,7 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "    -v, --verbose       verbose mode (more output)\n"
           "    -q, --quiet         quiet mode (less output, only errors)\n"
           "\n"
+          "Basic algorithm parameters:\n"
           "    -m, --model         selects the controllability model to use.\n"
           "                        Supported models: liu, switchboard.\n"
           "                        Default: switchboard.\n"
@@ -177,5 +187,9 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "                        Supported modes: driver_nodes, control_paths,\n"
           "                        statistics, significance. Default: driver_nodes.\n"
           "    -o, --output        specifies the name of the output file where the results\n"
-          "                        should be written.\n";
+          "                        should be written.\n"
+          "\n"
+          "Advanced algorithm parameters:\n"
+          "    -e, --edge          use the edge-based controllability measure for the\n"
+          "                        switchboard model.\n";
 }

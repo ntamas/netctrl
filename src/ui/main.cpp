@@ -121,7 +121,16 @@ public:
                 m_pModel.reset(new LiuControllabilityModel(m_pGraph.get()));
                 break;
             case SWITCHBOARD_MODEL:
-                m_pModel.reset(new SwitchboardControllabilityModel(m_pGraph.get()));
+                {
+                    SwitchboardControllabilityModel* sbdModel;
+                    sbdModel = new SwitchboardControllabilityModel(m_pGraph.get());
+                    sbdModel->setControllabilityMeasure(
+                            m_args.useEdgeMeasure ?
+                            SwitchboardControllabilityModel::EDGE_MEASURE :
+                            SwitchboardControllabilityModel::NODE_MEASURE
+                    );
+                    m_pModel.reset(sbdModel);
+                }
                 break;
         }
 
@@ -182,14 +191,17 @@ public:
         size_t observedDriverNodeCount;
         size_t numTrials = 100, i;
         float numNodes = m_pGraph->vcount();
+        float controllability;
         Vector counts;
         
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
         observedDriverNodeCount = m_pModel->driverNodes().size();
+        controllability = m_pModel->controllability();
+
         info(">> found %d driver node(s)", observedDriverNodeCount);
-        std::cout << "Observed\t" << observedDriverNodeCount / numNodes << '\n';
+        std::cout << "Observed\t" << controllability << '\n';
 
         // Testing Erdos-Renyi null model
         info(">> testing Erdos-Renyi null model");
@@ -203,7 +215,7 @@ public:
             pModel->setGraph(graph.get());
             pModel->calculate();
 
-            counts.push_back(pModel->driverNodes().size() / numNodes);
+            counts.push_back(pModel->controllability());
         }
         counts.sort();
         std::cout << "ER\t" << counts.sum() / counts.size() << '\n';
@@ -224,7 +236,7 @@ public:
             pModel->setGraph(graph.get());
             pModel->calculate();
 
-            counts.push_back(pModel->driverNodes().size() / numNodes);
+            counts.push_back(pModel->controllability());
         }
         counts.sort();
         std::cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
@@ -244,7 +256,7 @@ public:
             pModel->setGraph(graph.get());
             pModel->calculate();
 
-            counts.push_back(pModel->driverNodes().size() / numNodes);
+            counts.push_back(pModel->controllability());
         }
         counts.sort();
         std::cout << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';

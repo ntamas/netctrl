@@ -9,6 +9,13 @@ namespace netctrl {
 
 /// Switchboard controllability model
 class SwitchboardControllabilityModel : public ControllabilityModel {
+public:
+    /// The different types of controllability measures in this model
+    typedef enum {
+        NODE_MEASURE,
+        EDGE_MEASURE
+    } ControllabilityMeasure;
+
 private:
     /// The list of driver nodes that was calculated
     igraph::Vector m_driverNodes;
@@ -16,10 +23,15 @@ private:
     /// The list of control paths that was calculated
     std::vector<ControlPath*> m_controlPaths;
 
+    /// Whether we are using the node-based or the edge-based measure
+    ControllabilityMeasure m_controllabilityMeasure;
+
 public:
     /// Constructs a model that will operate on the given graph
     SwitchboardControllabilityModel(igraph::Graph* pGraph = 0)
-        : ControllabilityModel(pGraph), m_driverNodes(), m_controlPaths() {
+        : ControllabilityModel(pGraph), m_driverNodes(), m_controlPaths(),
+          m_controllabilityMeasure(NODE_MEASURE)
+    {
     }
 
     /// Destroys the model
@@ -28,10 +40,24 @@ public:
     virtual void calculate();
     igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
     virtual ControllabilityModel* clone();
+    virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
     virtual std::vector<EdgeClass> edgeClasses() const;
     virtual void setGraph(igraph::Graph* graph);
+
+    /// Returns the controllability measure used by the model
+    ControllabilityMeasure controllabilityMeasure() const;
+
+    /// Sets the controllability measure used by the model
+    /**
+     * When using the node-based measure (\c SBD_NODE_MEASURE), the
+     * controllability measure is the number of driver nodes divided by the
+     * number of nodes. When using the edge-based measure (\c SBD_EDGE_MEASURE),
+     * the controllability measure is the number of open control paths plus the
+     * number of balanced components, divided by the number of edges.
+     */
+    void setControllabilityMeasure(ControllabilityMeasure measure);
 
 protected:
     /// Removes all the control paths from the previous run (if any)

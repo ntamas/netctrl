@@ -129,6 +129,34 @@ ControllabilityModel* SwitchboardControllabilityModel::clone() {
     return result;
 }
 
+float SwitchboardControllabilityModel::controllability() const {
+    size_t numPaths;
+
+    switch (m_controllabilityMeasure) {
+        case NODE_MEASURE:
+            return m_driverNodes.size() / static_cast<float>(m_pGraph->vcount());
+
+        case EDGE_MEASURE:
+            numPaths = 0;
+            for (std::vector<ControlPath*>::const_iterator it = m_controlPaths.begin();
+                    it != m_controlPaths.end(); ++it) {
+                if (dynamic_cast<OpenWalk*>(*it) != 0) {
+                    numPaths++;
+                }
+            }
+            // TODO: add balanced components
+            return numPaths / static_cast<float>(m_pGraph->ecount());
+
+        default:
+            return 0;
+    }
+}
+
+SwitchboardControllabilityModel::ControllabilityMeasure
+SwitchboardControllabilityModel::controllabilityMeasure() const {
+    return m_controllabilityMeasure;
+}
+
 std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const {
     return m_controlPaths;
 }
@@ -258,6 +286,11 @@ bool SwitchboardControllabilityModel::isInBalancedComponentExcept(
     }
 
     return result;
+}
+
+void SwitchboardControllabilityModel::setControllabilityMeasure(
+        SwitchboardControllabilityModel::ControllabilityMeasure measure) {
+    m_controllabilityMeasure = measure;
 }
 
 void SwitchboardControllabilityModel::setGraph(igraph::Graph* graph) {

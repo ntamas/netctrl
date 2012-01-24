@@ -51,6 +51,9 @@ public:
     /// Operation mode of the application (i.e. what we are going to calculate)
     OperationMode operationMode;
 
+    /// Flag to denote whether we are using the edge-based measure for SBD
+    bool useEdgeMeasure;
+
 public:
 	/// Constructor
 	CommandLineArguments(const std::string programName = "netctrl",

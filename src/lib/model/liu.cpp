@@ -128,6 +128,10 @@ ControllabilityModel* LiuControllabilityModel::clone() {
     return result;
 }
 
+float LiuControllabilityModel::controllability() const {
+    return m_driverNodes.size() / static_cast<float>(m_pGraph->vcount());
+}
+
 std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
     return m_controlPaths;
 }

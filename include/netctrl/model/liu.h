@@ -33,6 +33,7 @@ public:
 
     virtual void calculate();
     virtual ControllabilityModel* clone();
+    virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
 
