@@ -175,4 +175,4 @@ BIbliography
        networks. *Nature* **473**:167-173, 2011.
 
 .. [2] Nepusz T and Vicsek T: Controlling edge dynamics in complex
-       networks. In preparation.
+       networks. Preprint, `arXiv:1112.5945v1 <http://arxiv.org/abs/1112.5945v1>`_
