@@ -168,7 +168,7 @@ Have you found a bug in the code? Do you have questions? Let me know.
 I think you are smart enough to figure out my email address by googling
 for my name. Or just drop me a message on GitHub.
 
-BIbliography
+Bibliography
 ============
 
 .. [1] Liu YY, Slotine JJ and Barabási AL: Controllability of complex

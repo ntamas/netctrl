@@ -125,7 +125,9 @@ void SwitchboardControllabilityModel::clearControlPaths() {
 }
 
 ControllabilityModel* SwitchboardControllabilityModel::clone() {
-    ControllabilityModel* result = new SwitchboardControllabilityModel(m_pGraph);
+    SwitchboardControllabilityModel* result =
+        new SwitchboardControllabilityModel(m_pGraph);
+    result->setControllabilityMeasure(this->controllabilityMeasure());
     return result;
 }
 
