@@ -127,9 +127,9 @@ option as follows:
 
 - ``liu`` selects the linear nodal dynamic model of Liu et al [1]_.
 
-Finally, you may specify an output file (``--output``, ``--o``), suppress most
-of the output of the program (``--quiet``, ``--q``) or ask for the command
-line help (``-help``, ``--h``).
+Finally, you may specify an output file (``--output``, ``-o``), suppress most
+of the output of the program (``--quiet``, ``-q``) or ask for the command
+line help (``--help``, ``-h``).
 
 Input formats
 =============
@@ -142,7 +142,7 @@ Input formats
 
 - Symbolic edge list format (``.ncol``, also known as the NCOL_ format). In
   this format, each line contains the name of the source and target vertex.
-  Names may be arbitrary strings that do not contain whitespaces.
+  Names may be arbitrary strings that do not contain whitespace.
 
 - LGL_ format (``.lgl``)
 
