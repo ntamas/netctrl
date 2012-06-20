@@ -44,7 +44,7 @@ void LiuControllabilityModel::calculate() {
 
     // Calculate the maximum bipartite matching
     VectorLong matching;
-    maximum_bipartite_matching(bipartiteGraph, types, 0, 0, &matching, 0);
+    maximum_bipartite_matching(bipartiteGraph, types, 0, 0, &matching, 0, 0);
     for (i = 0; i < n; i++) {
         if (matching[i] != -1)
             matching[i] -= n;
