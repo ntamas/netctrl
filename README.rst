@@ -40,13 +40,7 @@ Requirements
 
 - The most recent, up-to-date, bleeding-edge version of igraph_. Really.
   You need at least igraph_ 0.6 because that's where the bipartite
-  matching algorithm was added. At the time of writing, igraph_ 0.6
-  has not been released yet, and even the bipartite matching algorithm is
-  implemented in a separate branch only, so you have to check out the
-  ``0.6-matching`` branch from their `Launchpad repository`_ and compile
-  it yourself. In case there is no such branch, this means that the branch
-  has already been merged into ``0.6-main``, so check out ``0.6-main``
-  instead.
+  matching algorithm was added.
 
 - CMake_ to generate the makefiles (or the project file if you are using
   Visual Studio).
