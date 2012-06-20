@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="netctrl : Controllability models of complex networks" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>netctrl</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/ntamas/netctrl">View on GitHub</a>
+
+          <h1 id="project_title">netctrl</h1>
+          <h2 id="project_tagline">Controllability models of complex networks</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/ntamas/netctrl/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/ntamas/netctrl/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>This program implements algorithms that search for driver nodes in complex networks in order to make them (structurally) controllable. The program currently implements the controllability model of <a href="http://www.nature.com/nature/journal/v473/n7346/full/nature10011.html">Liu et al</a> and the switchboard dynamics of <a href="http://www.nature.com/nphys/journal/vaop/ncurrent/full/nphys2327.html">Nepusz and Vicsek</a>. Other models might be added later.</p>
+
+<h2>Precompiled binaries</h2>
+
+<p><a href="http://hal.elte.hu/%7Enepusz/files/netctrl">Precompiled binaries</a> are available for Linux systems running on 32-bit or 64-bit processors. If you are running a different system (e.g., Windows or Mac OS X), you have to compile <code>netctrl</code> yourself; please proceed to the <strong>Compiling from source code</strong> section. You must also compile <code>netctrl</code> yourself if you need the bleeding edge version as the packages at the above URL are not guaranteed to be updated regularly.  However, they could safely be used to check out <code>netctrl</code> quickly without having to go through all the hassle with compiling <code>netctrl</code> from source.</p>
+
+<p>If you are using a precompiled binary, please proceed to the <strong>Usage</strong> section for usage instructions.</p>
+
+<h2>Compiling from source code</h2>
+
+<h3>Requirements</h3>
+
+<ul>
+<li><p>The most recent, up-to-date, bleeding-edge version of <a href="http://igraph.sourceforge.net">igraph</a>. Really. You need at least <code>igraph</code> 0.6 because that's where the bipartite matching algorithm was added.</p></li>
+<li><p><a href="http://www.cmake.org">CMake</a> to generate the makefiles (or the project file if you are using Visual Studio).</p></li>
+</ul><h3>Compiling using cmake and make</h3>
+
+<p>These instructions are for Linux or Mac OS X and assume that <code>igraph</code> is installed in a way that CMake can figure out automatically where it is. (This usually involves using <code>pkg-config</code>; if you run <code>pkg-config --cflags igraph</code> and it works, then it should work with CMake as well). After checkout, execute the following commands:</p>
+
+<pre><code>$ git submodule update --init
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+</code></pre>
+
+<p>The first command is required only after you have checked out the source code from GitHub for the first time. The command fetches the source code of the C++ interface of <code>igraph</code> from GitHub and adds it to the source tree.</p>
+
+<h2>Usage</h2>
+
+<p>The program can operate in one of the following four modes at the moment:</p>
+
+<ol>
+<li><p>Finding driver nodes (<code>--mode driver_nodes</code>; this is the default). This mode lists the driver nodes of the network being analyzed, one node per line. Note that the algorithm finds a single feasible control configuration and lists the driver nodes of this configuration only; in other words, if you do not see a node in the list of driver nodes, it does not mean that the node may not become a driver node in an <em>alternative</em> control configuration. E.g., if the network contains a Hamiltonian cycle and you are working with the linear nodal dynamics of Liu et al, <em>any</em> node may become a driver node.</p></li>
+<li><p>Finding control paths (<code>--mode control_paths</code>). This mode is similar to <code>driver_nodes</code>, but provides a more detailed output where each control path is listed. Control paths are stems and buds in the Liu et al model and open/closed walks in the switchboard model; see the respective publications for more details.</p></li>
+<li><p>Printing general statistics (<code>--mode statistics</code>). This mode prints the number/fraction of driver nodes and the  different edge types (redundant, ordinary or critical for the linear nodal dynamics; distinguished, ordinary or critical for the switchboard dynamics). The first row contains the absolute numbers, the second row contains the relative fractions. The order of numbers within a row are as follows: driver nodes, distinguished edges, redundant edges, ordinary edges and critical edges. The linear nodal dynamics contains no distinguished edges; the switchboard dynamics contains no redundant edges.</p></li>
+<li><p>Testing the significance of the observed fraction of driver nodes by comparing it to null models (<code>--mode significance</code>). This mode generates 100 random instances of different null models for the given network and calculates the fraction of driver nodes for all the randomized instances. The average values are then listed for each null model and for the actual network. The following null models are tested:</p></li>
+</ol><ul>
+<li>Erdős-Rényi random networks (<code>ER</code>).</li>
+<li>Configuration model preserving the joint degree distribution (<code>Configuration</code>).</li>
+<li>Configuration model that preserves the in- and out-degree sequences but not the joint degree distribution (<code>Configuration_no_joint</code>).</li>
+</ul><p>The mode can be selected with the <code>--mode</code> (or <code>-M</code>) command line option. You should also select the controllability model with the <code>--model</code> (or <code>-m</code>) option as follows:</p>
+
+<ul>
+<li>
+<code>switchboard</code> selects the switchboard model of <a href="http://www.nature.com/nphys/journal/vaop/ncurrent/full/nphys2327.html">Nepusz and Vicsek</a> (this is the default).</li>
+<li>
+<code>liu</code> selects the linear nodal dynamic model of <a href="http://www.nature.com/nature/journal/v473/n7346/full/nature10011.html">Liu et al</a>.</li>
+</ul><p>Finally, you may specify an output file (<code>--output</code>, <code>-o</code>), suppress most of the output of the program (<code>--quiet</code>, <code>-q</code>) or ask for the command line help (<code>--help</code>, <code>-h</code>).</p>
+
+<h2>Input formats</h2>
+
+<p><code>netctrl</code> supports the following input formats:</p>
+
+<ul>
+<li><p>Simple edge list format (<code>.txt</code>) where each line contains two <em>numbers</em> corresponding to the source and target vertex IDs. Vertex IDs must be from 0 to <em>n</em>-1, where <em>n</em> is the total number of vertices.</p></li>
+<li><p>Symbolic edge list format (<code>.ncol</code>, also known as the <a href="http://lgl.sourceforge.net/#FileFormat">NCOL</a> format). In this format, each line contains the name of the source and target vertex. Names may be arbitrary strings that do not contain whitespace.</p></li>
+<li><p><a href="http://lgl.sourceforge.net/#FileFormat">LGL</a> format (<code>.lgl</code>)</p></li>
+<li><p><a href="http://graphml.graphdrawing.org">GraphML</a> format (<code>.graphml</code>)</p></li>
+<li><p><a href="http://www.fim.uni-passau.de/en/fim/faculty/chairs/theoretische-informatik/projects.html">GML</a> format (<code>.gml</code>)</p></li>
+</ul><p>The input format of the graph will be detected from the extension of the file name; see above for the recognised extensions.  For the GraphML and GML formats, vertex names must be provided in the <code>name</code> vertex attribute. If no such attribute is present, vertices will use numeric IDs from 0 to <em>n</em>-1, where <em>n</em> is the total number of vertices.</p>
+
+<h2>Bugs, questions?</h2>
+
+<p>Have you found a bug in the code? Do you have questions? Let me know. I think you are smart enough to figure out my email address by googling for my name. Or just drop me a message on GitHub.</p>
+
+<h2>Bibliography</h2>
+
+<ol>
+<li>Liu YY, Slotine JJ and Barabási AL: Controllability of complex networks. <em>Nature</em> <strong>473</strong>:167-173, 2011.</li>
+<li>Nepusz T and Vicsek T: Controlling edge dynamics in complex networks. <em>Nature Physics</em>, Advance Online Publication, 2012. <a href="http://www.nature.com/nphys/journal/vaop/ncurrent/full/nphys2327.html">doi:10.1038/nphys2327</a>
+</li>
+</ol>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">netctrl maintained by <a href="https://github.com/ntamas">ntamas</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-31104730-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
