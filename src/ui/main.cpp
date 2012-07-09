@@ -69,12 +69,14 @@ public:
      * If the name of the file is "-", the file is assumed to be the
      * standard input.
      */
-    std::auto_ptr<Graph> loadGraph(const std::string& filename) {
+    std::auto_ptr<Graph> loadGraph(const std::string& filename, GraphFormat format) {
         std::auto_ptr<Graph> result;
 
         if (filename == "-") {
             // Loading graph from standard input
-            result.reset(new Graph(GraphUtil::readGraph(stdin, GRAPH_FORMAT_EDGELIST)));
+            if (format == GRAPH_FORMAT_AUTO)
+                format = GRAPH_FORMAT_EDGELIST;
+            result.reset(new Graph(GraphUtil::readGraph(stdin, format)));
         } else if (filename.find("://") != filename.npos) {
             // Generating graph from model
             size_t pos = filename.find("://");
@@ -98,7 +100,7 @@ public:
             }
         } else {
             // Loading graph from file
-            result.reset(new Graph(GraphUtil::readGraph(filename)));
+            result.reset(new Graph(GraphUtil::readGraph(filename, format)));
             result->setAttribute("filename", filename);
         }
 
@@ -110,7 +112,7 @@ public:
         m_args.parse(argc, argv);
 
         info(">> loading graph: %s", m_args.inputFile.c_str());
-        m_pGraph = loadGraph(m_args.inputFile);
+        m_pGraph = loadGraph(m_args.inputFile, m_args.inputFormat);
         if (m_pGraph.get() == NULL)
             return 2;
 
@@ -223,7 +225,7 @@ public:
         }
 
         // Print the graph
-        GraphUtil::writeGraph(stdout, (*m_pGraph.get()), GRAPH_FORMAT_GML);
+        GraphUtil::writeGraph(stdout, (*m_pGraph.get()), m_args.outputFormat);
         return 0;
     }
 

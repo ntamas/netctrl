@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "SimpleOpt.h"
+#include "graph_util.h"
 
 /// Possible model types handled by the application
 typedef enum {
@@ -51,8 +52,22 @@ public:
     /// Operation mode of the application (i.e. what we are going to calculate)
     OperationMode operationMode;
 
+    /***********************/
+    /* Advanced parameters */
+    /***********************/
+
     /// Flag to denote whether we are using the edge-based measure for SBD
     bool useEdgeMeasure;
+
+    /***************************/
+    /* Input/output parameters */
+    /***************************/
+
+    /// Input format for reading graphs
+    GraphFormat inputFormat;
+
+    /// Output format for writing graphs
+    GraphFormat outputFormat;
 
 public:
 	/// Constructor
@@ -76,6 +91,9 @@ public:
 	void showHelp(std::ostream& os) const;
 
 protected:
+    /// Handles an option which takes a graph format as a parameter.
+    int handleFormatOption(const std::string& arg, GraphFormat* pFormat);
+
     /// Shows the "General options" section from the help message
     void showGeneralOptionsHelp(std::ostream& os) const;
 };

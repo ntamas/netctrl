@@ -1,6 +1,7 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
 #ifndef _GRAPH_UTIL_H
+#define _GRAPH_UTIL_H
 
 #include <stdexcept>
 #include <igraph/cpp/graph.h>
@@ -31,6 +32,9 @@ class GraphUtil {
 public:
     /// Tries to detect the format of a graph from its filename
     static GraphFormat detectFormat(const std::string& filename);
+
+    /// Converts a string into the corresponding GraphFormat constant
+    static GraphFormat formatFromString(const std::string& str);
 
     /// Reads a graph without having to know what format it is in
     static igraph::Graph readGraph(const std::string& filename,

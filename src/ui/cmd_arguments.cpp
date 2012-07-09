@@ -12,7 +12,7 @@ using namespace SimpleOpt;
 
 enum {
     HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL,
-    MODE, USE_EDGE
+    MODE, USE_EDGE, INPUT_FORMAT, OUTPUT_FORMAT
 };
 
 CommandLineArguments::CommandLineArguments(
@@ -21,7 +21,8 @@ CommandLineArguments::CommandLineArguments(
     m_options(),
     inputFile(), verbosity(1), outputFile(),
     modelType(SWITCHBOARD_MODEL), operationMode(MODE_DRIVER_NODES),
-    useEdgeMeasure(false)
+    useEdgeMeasure(false),
+    inputFormat(GRAPH_FORMAT_AUTO), outputFormat(GRAPH_FORMAT_GML)
 {
 
     addOption(USE_STDIN, "-", SO_NONE);
@@ -36,6 +37,9 @@ CommandLineArguments::CommandLineArguments(
     addOption(OUT_FILE, "-o", SO_REQ_SEP, "--output");
     addOption(MODEL,    "-m", SO_REQ_SEP, "--model");
     addOption(MODE,     "-M", SO_REQ_SEP, "--mode");
+
+    addOption(INPUT_FORMAT,  "-f", SO_REQ_SEP, "--input-format");
+    addOption(OUTPUT_FORMAT, "-F", SO_REQ_SEP, "--output-format");
 
     addOption(USE_EDGE, "-e", SO_NONE, "--edge");
 }
@@ -52,6 +56,11 @@ void CommandLineArguments::addOption(int id, const char* option,
         opt.pszArg = longOption;
         m_options.push_back(opt);
     }
+}
+
+int CommandLineArguments::handleFormatOption(const std::string& arg, GraphFormat* pFormat) {
+    *pFormat = GraphUtil::formatFromString(arg);
+    return *pFormat == GRAPH_FORMAT_UNKNOWN;
 }
 
 int CommandLineArguments::handleOption(int id, const std::string& arg) {
@@ -142,6 +151,30 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 useEdgeMeasure = true;
                 break;
 
+            /* Processing format options parameters */
+            case INPUT_FORMAT:
+                arg = args.OptionArg() ? args.OptionArg() : "";
+                ret = handleFormatOption(arg, &inputFormat);
+                if (ret) {
+                    cerr << "Unknown input format: " << arg << '\n';
+                    ret = 1;
+                } else {
+                    ret = -1;
+                }
+                break;
+
+            case OUTPUT_FORMAT:
+                arg = args.OptionArg() ? args.OptionArg() : "";
+                ret = handleFormatOption(arg, &outputFormat);
+                if (ret || (outputFormat != GRAPH_FORMAT_GRAPHML &&
+                            outputFormat != GRAPH_FORMAT_GML)) {
+                    cerr << "Unknown output format: " << arg << '\n';
+                    ret = 1;
+                } else {
+                    ret = -1;
+                }
+                break;
+
             default:
                 arg = args.OptionArg() ? args.OptionArg() : "";
                 ret = handleOption(args.OptionId(), arg);
@@ -193,5 +226,15 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "\n"
           "Advanced algorithm parameters:\n"
           "    -e, --edge          use the edge-based controllability measure for the\n"
-          "                        switchboard model.\n";
+          "                        switchboard model.\n"
+          "\n"
+          "Input/output format:\n"
+          "    -f, --input-format  specifies the input format for reading graphs.\n"
+          "                        Supported formats: auto, edgelist, gml, graphml, lgl, ncol\n"
+          "                        Default: auto, except when the input file comes from\n"
+          "                        stdin; in this case, edgelist is used.\n"
+          "    -F, --output-format specifies the output format for writing graphs. Used only\n"
+          "                        when mode = graph. Supported formats: gml, graphml.\n"
+          "                        Default: gml.\n";
+
 }

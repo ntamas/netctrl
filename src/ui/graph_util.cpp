@@ -8,6 +8,21 @@
 using namespace std;
 using namespace igraph;
 
+GraphFormat GraphUtil::formatFromString(const std::string& str) {
+    if (str == "edgelist")
+        return GRAPH_FORMAT_EDGELIST;
+    else if (str == "ncol")
+        return GRAPH_FORMAT_NCOL;
+    else if (str == "lgl")
+        return GRAPH_FORMAT_LGL;
+    else if (str == "graphml")
+        return GRAPH_FORMAT_GRAPHML;
+    else if (str == "gml")
+        return GRAPH_FORMAT_GML;
+    else
+        return GRAPH_FORMAT_UNKNOWN;
+}
+
 GraphFormat GraphUtil::detectFormat(const string& filename) {
     string::size_type idx = filename.rfind('.');
 
