@@ -3,7 +3,9 @@
 #include <memory>
 #include <sstream>
 #include <igraph/cpp/graph.h>
+#include <igraph/cpp/edge.h>
 #include <igraph/cpp/vertex.h>
+#include <igraph/cpp/vertex_selector.h>
 #include <igraph/cpp/generators/degree_sequence.h>
 #include <igraph/cpp/generators/erdos_renyi.h>
 #include <netctrl/model.h>
@@ -141,6 +143,9 @@ public:
             case MODE_DRIVER_NODES:
                 return runDriverNodes();
 
+            case MODE_GRAPH:
+                return runGraph();
+
             case MODE_STATISTICS:
                 return runStatistics();
 
@@ -183,6 +188,42 @@ public:
             }
         }
 
+        return 0;
+    }
+
+    /// Runs the annotated graph output mode
+    int runGraph() {
+        long int i, j, n;
+
+        info(">> calculating control paths and driver nodes");
+        m_pModel->calculate();
+
+        Vector driver_nodes = m_pModel->driverNodes();
+        std::vector<ControlPath*> paths = m_pModel->controlPaths();
+        info(">> found %d driver node(s) and %d control path(s)",
+                driver_nodes.size(), paths.size());
+
+        // Mark the driver nodes
+        for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
+            m_pGraph->vertex(*it).setAttribute("is_driver", true);
+        }
+
+        // Mark the edge types and path indices
+        j = 0;
+        for (std::vector<ControlPath*>::const_iterator it = paths.begin();
+                it != paths.end(); it++, j++) {
+            const igraph::Vector& vec = (*it)->edges(*m_pGraph.get());
+            n = vec.size();
+            for (i = 0; i < n; i++) {
+                igraph::Edge edge = m_pGraph->edge(vec[i]);
+                edge.setAttribute("path_type", (*it)->name());
+                edge.setAttribute("path_indices", j);
+                edge.setAttribute("path_order", i);
+            }
+        }
+
+        // Print the graph
+        GraphUtil::writeGraph(stdout, (*m_pGraph.get()), GRAPH_FORMAT_GML);
         return 0;
     }
 

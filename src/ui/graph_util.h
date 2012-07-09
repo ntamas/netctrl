@@ -40,6 +40,9 @@ public:
     /// Reads a graph from the given stream using the given format
     static igraph::Graph readGraph(FILE* fptr, GraphFormat format,
             bool directed = true);
+
+    /// Writes a graph to the given stream using the given format
+    static void writeGraph(FILE* fptr, const igraph::Graph& graph, GraphFormat format);
 };
 
 #endif       // _GRAPH_UTIL_H

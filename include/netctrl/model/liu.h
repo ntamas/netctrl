@@ -59,6 +59,11 @@ public:
     /// Returns the edges involved in the stem
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
 
+    /// Returns a user-friendly name for the control path type
+    virtual std::string name() const {
+        return "stem";
+    }
+
     /// Returns \c true since each stem needs an independent input signal
     virtual bool needsInputSignal() const {
         return true;
@@ -98,6 +103,11 @@ public:
 
     /// Returns the edges involved in the bud
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns a user-friendly name for the control path type
+    virtual std::string name() const {
+        return "bud";
+    }
 
     /// Returns \c false since buds do not need independent input signals
     virtual bool needsInputSignal() const {

@@ -80,3 +80,19 @@ Graph GraphUtil::readGraph(FILE* fptr, GraphFormat format, bool directed) {
 
     return result;
 }
+
+void GraphUtil::writeGraph(FILE* fptr, const Graph& graph, GraphFormat format) {
+    switch (format) {
+        case GRAPH_FORMAT_GRAPHML:
+            write_graphml(graph, fptr);
+            break;
+
+        case GRAPH_FORMAT_GML:
+            write_gml(graph, fptr);
+            break;
+
+        default:
+            throw UnknownGraphFormatException();
+    }
+}
+

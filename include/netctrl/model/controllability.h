@@ -5,6 +5,7 @@
 
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/vertex_selector.h>
+#include <string>
 
 namespace netctrl {
 
@@ -87,6 +88,11 @@ public:
      */
     virtual std::vector<EdgeClass> edgeClasses() const;
 
+    /// Returns the graph on which the controllability model will operate
+    virtual igraph::Graph* graph() const {
+        return m_pGraph;
+    }
+
     /// Sets the graph on which the controllability model will operate
     virtual void setGraph(igraph::Graph* graph) {
         m_pGraph = graph;
@@ -116,6 +122,9 @@ public:
 
     /// Returns the edges involved in the control path
     virtual igraph::Vector edges(const igraph::Graph& graph) const = 0;
+
+    /// Returns a user-friendly name for the control path type
+    virtual std::string name() const = 0;
 
     /// Returns whether the control path needs an independent input signal
     virtual bool needsInputSignal() const = 0;

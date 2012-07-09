@@ -90,6 +90,11 @@ public:
     /// Returns the edges involved in the open walk
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
 
+    /// Returns a user-friendly name for the control path type
+    virtual std::string name() const {
+        return "open walk";
+    }
+
     /// Returns \c true since each open walk needs an input signal
     virtual bool needsInputSignal() const {
         return true;
@@ -115,6 +120,11 @@ public:
 
     /// Returns the edges involved in the closed walk
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
+
+    /// Returns a user-friendly name for the control path type
+    virtual std::string name() const {
+        return "closed walk";
+    }
 
     /// Returns a string representation of the closed walk
     virtual std::string toString() const;

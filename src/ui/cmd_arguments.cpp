@@ -125,6 +125,8 @@ void CommandLineArguments::parse(int argc, char** argv) {
                     operationMode = MODE_DRIVER_NODES;
                 else if (arg == "control_paths")
                     operationMode = MODE_CONTROL_PATHS;
+                else if (arg == "graph")
+                    operationMode = MODE_GRAPH;
                 else if (arg == "statistics")
                     operationMode = MODE_STATISTICS;
                 else if (arg == "significance")
@@ -184,7 +186,7 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "                        Supported models: liu, switchboard.\n"
           "                        Default: switchboard.\n"
           "    -M, --mode          selects the mode in which the application will operate.\n"
-          "                        Supported modes: driver_nodes, control_paths,\n"
+          "                        Supported modes: driver_nodes, control_paths, graph,\n"
           "                        statistics, significance. Default: driver_nodes.\n"
           "    -o, --output        specifies the name of the output file where the results\n"
           "                        should be written.\n"
