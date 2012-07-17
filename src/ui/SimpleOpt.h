@@ -196,8 +196,6 @@ ShowFiles(args.FileCount(), args.Files());
 #ifndef INCLUDED_SimpleOpt
 #define INCLUDED_SimpleOpt
 
-namespace SimpleOpt {
-
 // Default the max arguments to a fixed value. If you want to be able to 
 // handle any number of arguments, then predefine this to 0 and it will 
 // use an internal dynamically allocated buffer instead.
@@ -208,6 +206,8 @@ namespace SimpleOpt {
 # include <string.h>    // memmove
 # define SO_STATICBUF   50
 #endif
+
+namespace SimpleOpt {
 
 //! Error values
 typedef enum _ESOError

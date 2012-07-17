@@ -179,8 +179,7 @@ igraph::Vector LiuControllabilityModel::driverNodes() const {
 }
 
 std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
-    size_t i, n = m_pGraph->vcount(), m = m_pGraph->ecount();
-    integer_t from, to;
+    integer_t from, to, i, n = m_pGraph->vcount(), m = m_pGraph->ecount();
     std::vector<EdgeClass> result(m);
     std::deque<long int> queue;
 
