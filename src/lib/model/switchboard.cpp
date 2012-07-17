@@ -311,7 +311,7 @@ igraph::Vector OpenWalk::edges(const igraph::Graph& graph) const {
     igraph::Vector::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
-        result.push_back(graph.get_eid(*it, *it2));
+        result.push_back(graph.getEid(*it, *it2));
         it++; it2++;
     }
 
@@ -336,7 +336,7 @@ igraph::Vector ClosedWalk::edges(const igraph::Graph& graph) const {
     if (m_nodes.size() == 0)
         return result;
     if (m_nodes.size() == 1) {
-        long int eid = graph.get_eid(m_nodes.front(), m_nodes.front());
+        long int eid = graph.getEid(m_nodes.front(), m_nodes.front());
         if (eid >= 0)
             result.push_back(eid);
         return result;
@@ -346,10 +346,10 @@ igraph::Vector ClosedWalk::edges(const igraph::Graph& graph) const {
     igraph::Vector::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
-        result.push_back(graph.get_eid(*it, *it2));
+        result.push_back(graph.getEid(*it, *it2));
         it++; it2++;
     }
-    result.push_back(graph.get_eid(*it, m_nodes.front()));
+    result.push_back(graph.getEid(*it, m_nodes.front()));
 
     return result;
 }

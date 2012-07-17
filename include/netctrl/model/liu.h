@@ -36,6 +36,7 @@ public:
     virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
+    virtual std::vector<EdgeClass> edgeClasses() const;
 
     DirectedMatching* matching();
     const DirectedMatching* matching() const;
@@ -45,6 +46,15 @@ public:
 protected:
     /// Removes all the control paths from the previous run (if any)
     void clearControlPaths();
+
+    /// Constructs the bipartite graph on which the matching will be searched.
+    /**
+     * \param  directed  whether the bipartite graph should be directed.
+     *                   If this is true, matched edges in the current matching
+     *                   will be oriented from top to bottom and the rest will
+     *                   be oriented from bottom to top.
+     */
+    igraph::Graph constructBipartiteGraph(bool directed=false) const;
 };
 
 /// Control path that represents a stem

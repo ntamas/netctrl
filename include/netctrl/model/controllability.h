@@ -19,6 +19,9 @@ typedef enum {
     EDGE_DISTINGUISHED
 } EdgeClass;
 
+/// Function to convert an edge class into its name
+std::string edgeClassToString(EdgeClass klass);
+
 /// Abstract superclass for controllability models
 class ControllabilityModel {
 protected:

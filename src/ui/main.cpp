@@ -205,6 +205,9 @@ public:
         info(">> found %d driver node(s) and %d control path(s)",
                 driver_nodes.size(), paths.size());
 
+        info(">> classifying edges");
+        std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
+
         // Mark the driver nodes
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             m_pGraph->vertex(*it).setAttribute("is_driver", true);
@@ -222,6 +225,13 @@ public:
                 edge.setAttribute("path_indices", j);
                 edge.setAttribute("path_order", i);
             }
+        }
+
+        // Mark the edge classes
+        n = m_pGraph->ecount();
+        for (i = 0; i < n; i++) {
+            igraph::Edge edge = m_pGraph->edge(i);
+            edge.setAttribute("edge_class", edgeClassToString(edge_classes[i]));
         }
 
         // Print the graph
