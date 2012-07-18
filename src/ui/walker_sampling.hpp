@@ -1,6 +1,7 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
 #ifndef _WALKER_SAMPLING_HPP
+#define _WALKER_SAMPLING_HPP
 
 #include <cstdlib>
 #include <cstring>
