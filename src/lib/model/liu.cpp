@@ -216,7 +216,10 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
 
         igraph::Vector edges = bipartiteGraph.incident(to, IGRAPH_IN);
         for (igraph::Vector::const_iterator it = edges.begin(); it != edges.end(); ++it) {
-            result[*it] = EDGE_ORDINARY;
+            long int eid = *it;
+            if (eid >= m)    // needed for undirected graphs only
+                eid -= m;
+            result[eid] = EDGE_ORDINARY;
             bipartiteGraph.edge(*it, &from, &to);
             if (!seen[from]) {
                 seen[from] = true;

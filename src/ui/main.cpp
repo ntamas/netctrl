@@ -86,14 +86,19 @@ public:
             if (model == "er") {
                 // Erdos-Renyi network
                 if (params.size() < 2) {
-                    error("ER generator requires two arguments: number of nodes "
-                            "and average degree");
+                    error("ER generator requires two or three arguments: number of nodes, "
+                            "average degree and directedness (optional)");
                     return result;    // points to null
                 }
 
                 long int n = atoi(params[0].c_str());
                 float k = atof(params[1].c_str());
-                return erdos_renyi_game_gnm(n, n*k, true, false);
+                bool directed = true;
+                if (params.size() >= 3) {
+                    directed = atoi(params[2].c_str()) != 0;
+                }
+                return erdos_renyi_game_gnm(n, directed ? n*k : n*k/2.0,
+                        directed, false);
             } else {
                 error("Unknown graph generator: %s", model.c_str());
                 return result;   // points to null
