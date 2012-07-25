@@ -1,5 +1,7 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
+#include <cstdio>
+#include <fstream>
 #include <memory>
 #include <sstream>
 #include <igraph/cpp/graph.h>
@@ -40,11 +42,17 @@ private:
     /// Parsed command line arguments
     CommandLineArguments m_args;
 
+    /// The C-style output file object where the results will be written
+    FILE* m_outputFileObject;
+
     /// Graph being analyzed by the UI
     std::auto_ptr<Graph> m_pGraph;
 
     /// Controllability model being calculated on the graph
     std::auto_ptr<ControllabilityModel> m_pModel;
+
+    /// The C++-style output stream where the results will be written
+    std::ostream* m_pOutputStream;
 
 public:
     LOGGING_FUNCTION(debug, 2);
@@ -52,7 +60,58 @@ public:
     LOGGING_FUNCTION(error, 0);
 
     /// Constructor
-    NetworkControllabilityApp() : m_pGraph(0), m_pModel(0) {}
+    NetworkControllabilityApp() : m_outputFileObject(0),
+        m_pGraph(0), m_pModel(0), m_pOutputStream(0) {}
+
+    /// Destructor
+    ~NetworkControllabilityApp() {
+        if (m_outputFileObject != 0 && m_outputFileObject != stdout) {
+            fclose(m_outputFileObject);
+        }
+
+        if (m_pOutputStream != 0 && m_pOutputStream != &std::cout) {
+            delete m_pOutputStream;
+        }
+    }
+
+    /// Returns the C-style output file object where the results should be written
+    FILE* getOutputFileObject() {
+        if (m_outputFileObject == 0) {
+            if (isWritingToStandardOutput()) {
+                m_outputFileObject = stdout;
+            } else {
+                m_outputFileObject = fopen(m_args.outputFile.c_str(), "w");
+                if (m_outputFileObject == 0) {
+                    error("cannot open output file for writing: %s",
+                            m_args.outputFile.c_str());
+                    exit(3);
+                }
+            }
+        }
+        return m_outputFileObject;
+    }
+
+    /// Returns the C++-style output stream where the results should be written
+    std::ostream& getOutputStream() {
+        if (m_pOutputStream == 0) {
+            if (isWritingToStandardOutput()) {
+                m_pOutputStream = &std::cout;
+            } else {
+                m_pOutputStream = new std::ofstream(m_args.outputFile.c_str());
+                if (m_pOutputStream->fail()) {
+                    error("cannot open output file for writing: %s",
+                            m_args.outputFile.c_str());
+                    exit(3);
+                }
+            }
+        }
+        return *m_pOutputStream;
+    }
+
+    /// Returns whether we are writing to the standard output
+    bool isWritingToStandardOutput() {
+        return m_args.outputFile.empty() || m_args.outputFile == "-";
+    }
 
     /// Returns whether we are running in quiet mode
     bool isQuiet() {
@@ -114,6 +173,8 @@ public:
 
     /// Runs the user interface
     int run(int argc, char** argv) {
+        int retval;
+
         m_args.parse(argc, argv);
 
         info(">> loading graph: %s", m_args.inputFile.c_str());
@@ -145,23 +206,34 @@ public:
 
         switch (m_args.operationMode) {
             case MODE_CONTROL_PATHS:
-                return runControlPaths();
+                retval = runControlPaths();
+                break;
 
             case MODE_DRIVER_NODES:
-                return runDriverNodes();
+                retval = runDriverNodes();
+                break;
 
             case MODE_GRAPH:
-                return runGraph();
+                retval = runGraph();
+                break;
 
             case MODE_STATISTICS:
-                return runStatistics();
+                retval = runStatistics();
+                break;
 
             case MODE_SIGNIFICANCE:
-                return runSignificance();
+                retval = runSignificance();
+                break;
 
             default:
-                return 1;
+                retval = 1;
         }
+
+        if (!retval && !isWritingToStandardOutput()) {
+            info(">> results were written to %s", m_args.outputFile.c_str());
+        }
+
+        return retval;
     }
 
     /// Runs the control path calculation mode
@@ -170,10 +242,12 @@ public:
         m_pModel->calculate();
 
         std::vector<ControlPath*> paths = m_pModel->controlPaths();
+        std::ostream& out = getOutputStream();
+
         info(">> found %d control path(s)", paths.size());
         for (std::vector<ControlPath*>::const_iterator it = paths.begin();
                 it != paths.end(); it++) {
-            std::cout << (*it)->toString() << '\n';
+            out << (*it)->toString() << '\n';
         }
 
         return 0;
@@ -185,13 +259,15 @@ public:
         m_pModel->calculate();
 
         Vector driver_nodes = m_pModel->driverNodes();
+        std::ostream& out = getOutputStream();
+
         info(">> found %d driver node(s)", driver_nodes.size());
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
             if (name.type() == typeid(std::string)) {
-                std::cout << name.as<std::string>() << '\n';
+                out << name.as<std::string>() << '\n';
             } else {
-                std::cout << name.as<long int>() << '\n';
+                out << name.as<long int>() << '\n';
             }
         }
 
@@ -240,7 +316,8 @@ public:
         }
 
         // Print the graph
-        GraphUtil::writeGraph(stdout, (*m_pGraph.get()), m_args.outputFormat);
+        GraphUtil::writeGraph(getOutputFileObject(), (*m_pGraph.get()), m_args.outputFormat);
+
         return 0;
     }
 
@@ -251,6 +328,7 @@ public:
         float numNodes = m_pGraph->vcount();
         float controllability;
         Vector counts;
+        std::ostream& out = getOutputStream();
         
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
@@ -259,7 +337,7 @@ public:
         controllability = m_pModel->controllability();
 
         info(">> found %d driver node(s)", observedDriverNodeCount);
-        std::cout << "Observed\t" << controllability << '\n';
+        out << "Observed\t" << controllability << '\n';
 
         // Testing Erdos-Renyi null model
         info(">> testing Erdos-Renyi null model");
@@ -276,7 +354,7 @@ public:
             counts.push_back(pModel->controllability());
         }
         counts.sort();
-        std::cout << "ER\t" << counts.sum() / counts.size() << '\n';
+        out << "ER\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
         Vector inDegrees, outDegrees;
@@ -297,7 +375,7 @@ public:
             counts.push_back(pModel->controllability());
         }
         counts.sort();
-        std::cout << "Configuration\t" << counts.sum() / counts.size() << '\n';
+        out << "Configuration\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
         info(">> testing configuration model (destroying joint degree distribution)");
@@ -317,7 +395,7 @@ public:
             counts.push_back(pModel->controllability());
         }
         counts.sort();
-        std::cout << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';
+        out << "Configuration_no_joint\t" << counts.sum() / counts.size() << '\n';
 
         return 0;
     }
@@ -328,7 +406,8 @@ public:
         float m = m_pGraph->ecount();
         long int num_driver;
         long int num_redundant = 0, num_ordinary = 0, num_critical = 0, num_distinguished = 0;
-
+        std::ostream& out = getOutputStream();
+ 
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
         num_driver = m_pModel->driverNodes().size();
@@ -351,16 +430,16 @@ public:
         info(">> order is as follows:");
         info(">> driver nodes; distinguished, redundant, ordinary, critical edges");
 
-        std::cout << num_driver << ' '
-                  << num_distinguished << ' '
-                  << num_redundant << ' '
-                  << num_ordinary << ' '
-                  << num_critical << '\n';
-        std::cout << num_driver / n << ' '
-                  << num_distinguished / m << ' '
-                  << num_redundant / m << ' '
-                  << num_ordinary / m << ' '
-                  << num_critical / m << '\n';
+        out << num_driver << ' '
+            << num_distinguished << ' '
+            << num_redundant << ' '
+            << num_ordinary << ' '
+            << num_critical << '\n';
+        out << num_driver / n << ' '
+            << num_distinguished / m << ' '
+            << num_redundant / m << ' '
+            << num_ordinary / m << ' '
+            << num_critical / m << '\n';
 
         return 0;
     }
