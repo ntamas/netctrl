@@ -70,7 +70,7 @@ C++ interface of igraph_ from GitHub and adds it to the source tree.
 Usage
 =====
 
-The program may operate in one of the following four modes at the moment:
+The program may operate in one of the following five modes at the moment:
 
 1. Finding driver nodes (``--mode driver_nodes``; this is the default). This mode
    lists the driver nodes of the network being analyzed, one node per line.
@@ -112,6 +112,15 @@ The program may operate in one of the following four modes at the moment:
    - Configuration model that preserves the in- and out-degree sequences but
      not the joint degree distribution (``Configuration_no_joint``).
 
+5. Annotating the edges and nodes of the input graph with several attributes.
+   For each node, ``netctrl`` will determine whether the node is a driver node
+   or not. For each edge, ``netctrl`` will determine whether the edge is
+   distinguished, redundant, ordinary or critical (see also ``--mode statistcs``
+   above), indicate which control path it is a part of (if any), and also
+   determines the position of each edge in its control path. The results are
+   printed in either GraphML or GML format, depending on the value of the
+   ``-F`` (or ``--output-format``) argument.
+
 The mode can be selected with the ``--mode`` (or ``-M``) command line option.
 You should also select the controllability model with the ``--model`` (or ``-m``)
 option as follows:
@@ -150,10 +159,25 @@ Input formats
 .. _GML: http://www.fim.uni-passau.de/en/fim/faculty/chairs/theoretische-informatik/projects.html
 
 The input format of the graph will be detected from the extension of the file
-name; see above for the recognised extensions.  For the GraphML and GML
+name by deafult; see above for the recognised extensions.  For the GraphML and GML
 formats, vertex names must be provided in the ``name`` vertex attribute. If no
 such attribute is present, vertices will use numeric IDs from 0 to *n*-1, where
 *n* is the total number of vertices.
+
+If the format autodetection fails (i.e. ``netctrl`` detects the format incorrectly
+or it is not able to decide on the format at all), you can help ``netctrl`` out
+by specifying the input format manually using the ``-f`` or ``--input-format``
+option.
+
+Output formats
+==============
+
+The output format is relevant only if ``netctrl`` is running with ``--mode graph``.
+In this case, you can choose between the GraphML_ and GML_ output formats; the
+annotated graph will be printed in whichever format you choose and the
+node and edge metadata will be attached as attributes in the chosen format.
+Note that the other formats listed in the `Input formats`_ section do not support
+node and edge attributes, hence they are not suitable as output formats.
 
 Bugs, questions?
 ================
@@ -169,6 +193,5 @@ Bibliography
        networks. *Nature* **473**:167-173, 2011.
 
 .. [2] Nepusz T and Vicsek T: Controlling edge dynamics in complex
-       networks. *Nature Physics*, Advance Online Access, 2012.
-       doi:10.1038/nphys2327.
+       networks. *Nature Physics*, **8**:568-573, 2012.
 
