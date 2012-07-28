@@ -198,7 +198,8 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
     //     from bottom to top
     Graph bipartiteGraph = this->constructBipartiteGraph(true);
 
-    // (3) Start a BFS from unmatched nodes, mark all traversed edges as ORDINARY
+    // (3a) Start a backward BFS from unmatched nodes, mark all traversed edges
+    // as ORDINARY
     VectorBool seen(2*n);
     for (from = 0; from < n; from++) {
         if (!m_matching.isMatched(from)) {
@@ -223,6 +224,34 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
             if (!seen[from]) {
                 seen[from] = true;
                 queue.push_back(from);
+            }
+        }
+    }
+    // (3b) Start a forward BFS
+    seen.fill(false);
+    for (from = 0; from < n; from++) {
+        if (!m_matching.isMatched(from)) {
+            queue.push_back(from);
+            seen[from] = true;
+        }
+        if (!m_matching.isMatching(from)) {
+            queue.push_back(from+n);
+            seen[from+n] = true;
+        }
+    }
+    while (!queue.empty()) {
+        from = queue.front(); queue.pop_front();
+
+        igraph::Vector edges = bipartiteGraph.incident(from, IGRAPH_OUT);
+        for (igraph::Vector::const_iterator it = edges.begin(); it != edges.end(); ++it) {
+            long int eid = *it;
+            if (eid >= m)    // needed for undirected graphs only
+                eid -= m;
+            result[eid] = EDGE_ORDINARY;
+            bipartiteGraph.edge(*it, &from, &to);
+            if (!seen[to]) {
+                seen[to] = true;
+                queue.push_back(to);
             }
         }
     }
