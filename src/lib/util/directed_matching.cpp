@@ -1,5 +1,6 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
+#include <algorithm>
 #include <cassert>
 #include <stdexcept>
 #include <netctrl/util/directed_matching.h>
