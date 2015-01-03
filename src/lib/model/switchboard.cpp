@@ -22,7 +22,7 @@ SwitchboardControllabilityModel::~SwitchboardControllabilityModel() {
 }
 
 void SwitchboardControllabilityModel::calculate() {
-    Vector inDegrees, outDegrees, incs;
+    Vector inDegrees, outDegrees;
     long int i, j, n = m_pGraph->vcount();
     long int balancedCount = 0;
 
@@ -70,49 +70,34 @@ void SwitchboardControllabilityModel::calculate() {
     // Clear the list of control paths
     clearControlPaths();
 
-    // Start a stem from each driver node found so far. Note that we have to
-    // watch out here: the last few items of m_driverNodes might be driver
-    // nodes but they do not have corresponding stems since they are in
-    // balanced components.
+	// Declare some more variables that we will need.
     VectorBool edgeUsed(m_pGraph->ecount());
+	std::auto_ptr<ControlPath> path;
+
+    // Start stems from each divergent node until there are no more divergent
+	// nodes. We are lucky here because m_driverNodes contains all the divergent
+	// nodes by now -- the only catch is that the last few nodes in m_driverNodes
+	// are balanced, but we simply skip those for the time being.
     for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
-        Vector nodesInPath;
-        ControlPath* path;
-        long int v, w;
-        bool firstPathFromThisNode = true;
+		// While the node is divergent...
+        while (outDegrees[*it] > inDegrees[*it]) {
+            // Select an arbitrary outgoing edge and follow it until we get stuck,
+			// then store it as a closed or open walk
+			path = createControlPathFromNode(*it, edgeUsed, outDegrees, inDegrees);
+			m_controlPaths.push_back(path.release());
+        }
+    }
 
-        while (firstPathFromThisNode || outDegrees[*it] > inDegrees[*it]) {
-            // Select an arbitrary outgoing edge and follow it until we get stuck.
-            v = *it;
-            nodesInPath.clear();
-            while (v != -1) {
-                nodesInPath.push_back(v);
-
-                w = -1;
-                m_pGraph->incident(&incs, v, IGRAPH_OUT);
-                for (Vector::const_iterator it2 = incs.begin(); it2 != incs.end(); it2++) {
-                    if (edgeUsed[*it2])
-                        continue;
-                    w = *it2;
-                    break;
-                }
-                if (w == -1)
-                    break;
-
-                edgeUsed[w] = true;
-                outDegrees[v]--;
-                v = IGRAPH_TO(m_pGraph->c_graph(), w);
-                inDegrees[v]--;
-            }
-
-            if (v == *it && nodesInPath.size() > 1) {
-                nodesInPath.pop_back();
-                path = new ClosedWalk(nodesInPath);
-            } else {
-                path = new OpenWalk(nodesInPath);
-            }
-            m_controlPaths.push_back(path);
-            firstPathFromThisNode = false;
+	// At this point, all the nodes are balanced (w.r.t. their remaining
+	// degrees), so we can form closed walks from them without watching their
+	// degrees.
+    for (i = 0; i < n; i++) {
+		// While the node still has any outbound edges left...
+        while (outDegrees[i] > 0) {
+            // Select an arbitrary outgoing edge and follow it until we get stuck,
+			// then store it as a closed or open walk
+			path = createControlPathFromNode(i, edgeUsed, outDegrees, inDegrees);
+			m_controlPaths.push_back(path.release());
         }
     }
 }
@@ -163,11 +148,62 @@ std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const 
     return m_controlPaths;
 }
 
-igraph::Vector SwitchboardControllabilityModel::driverNodes() const {
+std::auto_ptr<ControlPath> SwitchboardControllabilityModel::createControlPathFromNode(
+		long int start, VectorBool& edgeUsed, Vector& outDegrees, Vector& inDegrees) const {
+	long int v, w;
+	Vector walk, incs;
+	ControlPath* path;
+
+	v = start;
+	while (v != -1) {
+		// Find an outbound edge that has not been used yet
+		w = -1;
+		m_pGraph->incident(&incs, v, IGRAPH_OUT);
+		for (Vector::const_iterator it2 = incs.begin(); it2 != incs.end(); it2++) {
+			if (!edgeUsed[*it2]) {
+				w = *it2;
+				break;
+			}
+		}
+
+		// Did we get stuck? If so, break out of the loop.
+		if (w == -1) {
+			break;
+		}
+
+		// Add v to the walk
+		walk.push_back(v);
+
+		// Mark edge w as used and update v to the node edge w is pointing to.
+		// Also update the degree vectors
+		edgeUsed[w] = true;
+		outDegrees[v]--;
+		v = IGRAPH_TO(m_pGraph->c_graph(), w);
+		inDegrees[v]--;
+	}
+
+	// Add v to the walk unless it is equal to the starting point (in which case
+	// we have a closed walk)
+	if (v != start) {
+		walk.push_back(v);
+		path = new OpenWalk(walk);
+	} else if (walk.size() == 0) {
+		// There were no available outbound edges from the start node so we just
+		// return NULL
+		path = NULL;
+	} else {
+		// This is a closed walk.
+		path = new ClosedWalk(walk);
+	}
+
+	return std::auto_ptr<ControlPath>(path);
+}
+
+Vector SwitchboardControllabilityModel::driverNodes() const {
     return m_driverNodes;
 }
 
-igraph::Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
     Vector degreeDiffs, outDegrees;
     Vector result(m_pGraph->ecount());
     EdgeSelector es = E(m_pGraph);
@@ -295,7 +331,7 @@ void SwitchboardControllabilityModel::setControllabilityMeasure(
     m_controllabilityMeasure = measure;
 }
 
-void SwitchboardControllabilityModel::setGraph(igraph::Graph* graph) {
+void SwitchboardControllabilityModel::setGraph(Graph* graph) {
     ControllabilityModel::setGraph(graph);
     m_driverNodes.clear();
     clearControlPaths();
@@ -305,10 +341,10 @@ void SwitchboardControllabilityModel::setGraph(igraph::Graph* graph) {
 /*************************************************************************/
 
 
-igraph::Vector OpenWalk::edges(const igraph::Graph& graph) const {
-    igraph::Vector result;
-    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
-    igraph::Vector::const_iterator end = m_nodes.end();
+Vector OpenWalk::edges(const Graph& graph) const {
+    Vector result;
+    Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
+    Vector::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
         result.push_back(graph.getEid(*it, *it2));
@@ -322,7 +358,7 @@ std::string OpenWalk::toString() const {
 	std::ostringstream oss;
 
 	oss << "Open walk:";
-	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+	for (Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
 		oss << ' ' << *it;
 	}
 
@@ -330,8 +366,8 @@ std::string OpenWalk::toString() const {
 }
 
 
-igraph::Vector ClosedWalk::edges(const igraph::Graph& graph) const {
-    igraph::Vector result;
+Vector ClosedWalk::edges(const Graph& graph) const {
+    Vector result;
 
     if (m_nodes.size() == 0)
         return result;
@@ -342,8 +378,8 @@ igraph::Vector ClosedWalk::edges(const igraph::Graph& graph) const {
         return result;
     }
 
-    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
-    igraph::Vector::const_iterator end = m_nodes.end();
+    Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
+    Vector::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
         result.push_back(graph.getEid(*it, *it2));
@@ -358,7 +394,7 @@ std::string ClosedWalk::toString() const {
 	std::ostringstream oss;
 
 	oss << "Closed walk:";
-	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+	for (Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
 		oss << ' ' << *it;
 	}
 

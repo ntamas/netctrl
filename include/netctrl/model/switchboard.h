@@ -4,6 +4,8 @@
 #define NETCTRL_MODEL_SWITCHBOARD_H
 
 #include <netctrl/model/controllability.h>
+#include <igraph/cpp/vector.h>
+#include <igraph/cpp/vector_bool.h>
 
 namespace netctrl {
 
@@ -64,6 +66,26 @@ protected:
     void clearControlPaths();
 
 private:
+    /**
+     * \brief Starts a walk from the given node following arbitrary edges and
+     * creates a control path out of it.
+     *
+     * \param  start      the node to start the walk from
+     * \param  edgeUsed   a vector where we can mark edges that have been used
+     *                    up for the current walk (or previous ones)
+     * \param  outDegrees the number of unused outbound edges for each node.
+     *                    Must be consistent with \c edgeUsed and is updated
+     *                    accordingly.
+     * \param  inDegrees  the number of unused inbound edges for each node.
+     *                    Must be consistent with \c edgeUsed and is updated
+     *                    accordingly.
+     * \return a newly allocated control path whose ownership is transferred to
+     *         the caller
+     */
+    std::auto_ptr<ControlPath> createControlPathFromNode(long int start,
+            igraph::VectorBool& edgeUsed, igraph::Vector& outDegrees,
+            igraph::Vector& inDegrees) const;
+    
     /**
      * Checks whether the given vertex v is part of a non-trivial
      * balanced component.
