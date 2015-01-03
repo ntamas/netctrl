@@ -1,8 +1,12 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
+#include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <fstream>
+#include <iterator>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/edge.h>
@@ -15,6 +19,7 @@
 #include "cmd_arguments.h"
 #include "graph_util.h"
 #include "logging.h"
+#include "vertex_set_spec.h"
 
 using namespace igraph;
 using namespace netctrl;
@@ -204,6 +209,27 @@ public:
                 break;
         }
 
+        // Parse and interpret the specifications for the target vertices
+        igraph::Vector targets;
+        if (m_args.targetSpecifications.size() > 0) {
+            std::set<int> targetSet;
+            std::set<int> currentSet;
+            std::vector<std::string>::const_iterator it;
+            VertexSetSpecificationParser parser(m_pGraph.get());
+
+            for (it = m_args.targetSpecifications.begin();
+                    it != m_args.targetSpecifications.end(); ++it) {
+                currentSet = parser.parse(*it);
+                std::copy(currentSet.begin(), currentSet.end(),
+                        std::inserter(targetSet, targetSet.end()));
+            }
+
+            targets.update(targetSet.begin(), targetSet.end());
+
+            info(">> using %ld target vertices", (long)targets.size());
+            m_pModel->setTargets(&targets);
+        }
+
         switch (m_args.operationMode) {
             case MODE_CONTROL_PATHS:
                 retval = runControlPaths();
@@ -286,8 +312,13 @@ public:
         info(">> found %d driver node(s) and %d control path(s)",
                 driver_nodes.size(), paths.size());
 
-        info(">> classifying edges");
-        std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
+        std::vector<EdgeClass> edge_classes;
+        if (m_pModel->supportsEdgeClasses()) {
+            info(">> classifying edges");
+            edge_classes = m_pModel->edgeClasses();
+        } else {
+            info(".. edge classification not supported with this model");
+        }
 
         // Mark the driver nodes
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
@@ -309,10 +340,12 @@ public:
         }
 
         // Mark the edge classes
-        n = m_pGraph->ecount();
-        for (i = 0; i < n; i++) {
-            igraph::Edge edge = m_pGraph->edge(i);
-            edge.setAttribute("edge_class", edgeClassToString(edge_classes[i]));
+        if (!edge_classes.empty()) {
+            n = m_pGraph->ecount();
+            for (i = 0; i < n; i++) {
+                igraph::Edge edge = m_pGraph->edge(i);
+                edge.setAttribute("edge_class", edgeClassToString(edge_classes[i]));
+            }
         }
 
         // Print the graph
@@ -412,19 +445,23 @@ public:
         m_pModel->calculate();
         num_driver = m_pModel->driverNodes().size();
 
-        info(">> classifying edges");
-        std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
-        if (edge_classes.size() == m && !edge_classes.empty()) {
-            for (long int i = 0; i < m; i++) {
-                if (edge_classes[i] == EDGE_REDUNDANT)
-                    num_redundant++;
-                else if (edge_classes[i] == EDGE_ORDINARY)
-                    num_ordinary++;
-                else if (edge_classes[i] == EDGE_DISTINGUISHED)
-                    num_distinguished++;
-                else
-                    num_critical++;
+        if (m_pModel->supportsEdgeClasses()) {
+            info(">> classifying edges");
+            std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
+            if (edge_classes.size() == m && !edge_classes.empty()) {
+                for (long int i = 0; i < m; i++) {
+                    if (edge_classes[i] == EDGE_REDUNDANT)
+                        num_redundant++;
+                    else if (edge_classes[i] == EDGE_ORDINARY)
+                        num_ordinary++;
+                    else if (edge_classes[i] == EDGE_DISTINGUISHED)
+                        num_distinguished++;
+                    else
+                        num_critical++;
+                }
             }
+        } else {
+            info(".. edge classification not supported with this model");
         }
 
         info(">> order is as follows:");
@@ -450,6 +487,12 @@ int main(int argc, char** argv) {
     NetworkControllabilityApp app;
 
     igraph::AttributeHandler::attach();
-    return app.run(argc, argv);
+
+    try {
+        return app.run(argc, argv);
+    } catch (std::runtime_error& e) {
+        std::cerr << "!! " << e.what() << '\n';
+        return 42;
+    }
 }
 

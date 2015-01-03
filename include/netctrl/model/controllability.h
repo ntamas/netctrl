@@ -28,9 +28,17 @@ protected:
     /// The graph on which the controllability model will operate
     igraph::Graph* m_pGraph;
 
+    /**
+     * \brief The set of nodes that are to be controlled in the model.
+     *
+     * A null pointer means that all the nodes have to be controlled.
+     */
+    igraph::Vector* m_pTargets;
+
 public:
     /// Constructs a controllability model that will operate on the given graph
-    ControllabilityModel(igraph::Graph* pGraph = 0) : m_pGraph(pGraph) {
+    ControllabilityModel(igraph::Graph* pGraph = 0, igraph::Vector* pTargets = 0)
+        : m_pGraph(pGraph), m_pTargets(pTargets) {
     }
 
     /// Virtual destructor that does nothing
@@ -59,6 +67,13 @@ public:
      *         or not feasible.
      */
     virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+
+    /// Checks whether the parameters of the model are valid
+    /**
+     * \throws  runtime_error  if the parameters of the model are not valid or
+     *                         not supported.
+     */
+    virtual void checkParameters() const;
 
     /// Returns the controllability measure of the model after a successful calculation
     virtual float controllability() const = 0;
@@ -100,6 +115,21 @@ public:
     virtual void setGraph(igraph::Graph* graph) {
         m_pGraph = graph;
     }
+
+    /// Returns whether the model supports the calculation of edge classes
+    virtual bool supportsEdgeClasses() const {
+        return false;
+    }
+
+    /// Returns the list of target node indices
+    virtual igraph::Vector* targets() const {
+        return m_pTargets;
+    }
+
+    /// Sets the list of target node indices
+    virtual void setTargets(igraph::Vector* targets) {
+        m_pTargets = targets;
+    }
 };
 
 
@@ -110,6 +140,11 @@ protected:
 
     /// Creates an empty control path
     ControlPath() : m_nodes() {}
+
+    /// Creates a control path with a single node
+    explicit ControlPath(long int node) : m_nodes() {
+        m_nodes.push_back(node);
+    }
 
     /// Creates a control path with the given nodes
     explicit ControlPath(const igraph::Vector& nodes) : m_nodes(nodes) {}

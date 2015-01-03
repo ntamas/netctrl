@@ -40,6 +40,9 @@ public:
 	/// Name of the input file
 	std::string inputFile;
 
+    /// Specifications for the target nodes
+    std::vector<std::string> targetSpecifications;
+
     /// Verbosity level
     int verbosity;
 
@@ -93,9 +96,6 @@ public:
 protected:
     /// Handles an option which takes a graph format as a parameter.
     int handleFormatOption(const std::string& arg, GraphFormat* pFormat);
-
-    /// Shows the "General options" section from the help message
-    void showGeneralOptionsHelp(std::ostream& os) const;
 };
 
 #endif     // _CMD_ARGUMENTS_BASE_H

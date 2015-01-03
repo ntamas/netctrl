@@ -23,8 +23,8 @@ private:
 
 public:
     /// Constructs a model that will operate on the given graph
-    LiuControllabilityModel(igraph::Graph* pGraph = 0)
-        : ControllabilityModel(pGraph), m_driverNodes(), m_matching(),
+    LiuControllabilityModel(igraph::Graph* pGraph = 0, igraph::Vector* pTargets = 0)
+        : ControllabilityModel(pGraph, pTargets), m_driverNodes(), m_matching(),
         m_controlPaths() {
     }
 
@@ -42,19 +42,48 @@ public:
     const DirectedMatching* matching() const;
 
     virtual void setGraph(igraph::Graph* graph);
+    virtual bool supportsEdgeClasses() const;
 
 protected:
+    /// Processes the current matching of the model and calculates control paths.
+    /**
+     * This function assumes that \c m_matching is already set to a valid
+     * matching.
+     */
+    void calculateControlPaths();
+
+    /// Calculates a matching that matches the given target nodes to controllers.
+    DirectedMatching calculateTargetedMatching(igraph::Vector* pTargets);
+
+    /// Calculates a matching that matches all the nodes to controllers.
+    DirectedMatching calculateUntargetedMatching();
+
     /// Removes all the control paths from the previous run (if any)
     void clearControlPaths();
 
-    /// Constructs the bipartite graph on which the matching will be searched.
+    /// Constructs an undirected bipartite graph on which the matching will be searched.
     /**
-     * \param  directed  whether the bipartite graph should be directed.
-     *                   If this is true, matched edges in the current matching
-     *                   will be oriented from top to bottom and the rest will
-     *                   be oriented from bottom to top.
+     * \param  pTargets   pointer to a vector containing the list of target nodes
+     *                    to be controlled, or \c NULL if all the nodes are to be
+     *                    controlled
+     * \param  pMapping   pointer to a vector that will contain a mapping from
+     *                    the node indices of the bipartite graph back to the
+     *                    node indices of the original graph. \c NULL is
+     *                    allowed; in this case the mapping will not be
+     *                    calculated
      */
-    igraph::Graph constructBipartiteGraph(bool directed=false) const;
+    igraph::Graph constructBipartiteGraph(const igraph::Vector* pTargets=0,
+            igraph::Vector* pMapping=0) const;
+
+    /// Constructs a directed bipartite graph from the given matching.
+    /**
+     * \param  matching  the matching that defines the edge directions in the
+     *                   bipartite graph. Matched edges are oriented from top
+     *                   to bottom and the rest will be oriented from bottom to
+     *                   top.
+     */
+    igraph::Graph constructDirectedBipartiteGraphFromMatching(
+            const DirectedMatching& matching) const;
 };
 
 /// Control path that represents a stem
@@ -63,8 +92,16 @@ public:
     /// Creates an empty stem
     Stem() : ControlPath() {}
 
+    /// Creates a stem with a single node
+    explicit Stem(long int node) : ControlPath(node) {}
+
     /// Creates a stem with the given nodes
     explicit Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
+
+    /// Creates another stem that is semantically identical to the current stem
+    Stem* clone() const {
+        return new Stem(m_nodes);
+    }
 
     /// Returns the edges involved in the stem
     virtual igraph::Vector edges(const igraph::Graph& graph) const;

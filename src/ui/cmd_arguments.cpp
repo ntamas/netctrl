@@ -12,7 +12,7 @@ using namespace SimpleOpt;
 
 enum {
     HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL,
-    MODE, USE_EDGE, INPUT_FORMAT, OUTPUT_FORMAT
+    MODE, USE_EDGE, INPUT_FORMAT, OUTPUT_FORMAT, ADD_TARGET_SPEC
 };
 
 CommandLineArguments::CommandLineArguments(
@@ -40,6 +40,8 @@ CommandLineArguments::CommandLineArguments(
 
     addOption(INPUT_FORMAT,  "-f", SO_REQ_SEP, "--input-format");
     addOption(OUTPUT_FORMAT, "-F", SO_REQ_SEP, "--output-format");
+
+    addOption(ADD_TARGET_SPEC, "-t", SO_REQ_SEP, "--target");
 
     addOption(USE_EDGE, "-e", SO_NONE, "--edge");
 }
@@ -146,6 +148,10 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 }
                 break;
 
+            case ADD_TARGET_SPEC:
+                targetSpecifications.push_back(args.OptionArg());
+                break;
+
             /* Processing advanced algorithm parameters */
             case USE_EDGE:
                 useEdgeMeasure = true;
@@ -223,6 +229,9 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "                        statistics, significance. Default: driver_nodes.\n"
           "    -o, --output        specifies the name of the output file where the results\n"
           "                        should be written.\n"
+          "    -t, --target        specifies the target nodes in the network.\n"
+          "                        Supported formats:\n"
+          "                          - comma-separated lists of vertex names"
           "\n"
           "Advanced algorithm parameters:\n"
           "    -e, --edge          use the edge-based controllability measure for the\n"

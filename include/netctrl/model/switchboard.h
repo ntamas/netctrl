@@ -32,8 +32,8 @@ private:
 
 public:
     /// Constructs a model that will operate on the given graph
-    SwitchboardControllabilityModel(igraph::Graph* pGraph = 0)
-        : ControllabilityModel(pGraph), m_driverNodes(), m_controlPaths(),
+    SwitchboardControllabilityModel(igraph::Graph* pGraph = 0, igraph::Vector* pTargets = 0)
+        : ControllabilityModel(pGraph, pTargets), m_driverNodes(), m_controlPaths(),
           m_controllabilityMeasure(NODE_MEASURE)
     {
     }
@@ -42,12 +42,14 @@ public:
     virtual ~SwitchboardControllabilityModel();
 
     virtual void calculate();
-    igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+    virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+    virtual void checkParameters() const;
     virtual ControllabilityModel* clone();
     virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
     virtual igraph::Vector driverNodes() const;
     virtual std::vector<EdgeClass> edgeClasses() const;
+    virtual bool supportsEdgeClasses() const;
     virtual void setGraph(igraph::Graph* graph);
 
     /// Returns the controllability measure used by the model

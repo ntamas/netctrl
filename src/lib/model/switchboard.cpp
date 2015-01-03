@@ -11,6 +11,7 @@
 #include <igraph/cpp/vector_bool.h>
 #include <igraph/cpp/analysis/components.h>
 #include <igraph/cpp/generators/line_graph.h>
+#include <netctrl/errors.h>
 #include <netctrl/model/switchboard.h>
 
 
@@ -129,11 +130,23 @@ void tryToMergeClosedWalks(std::deque<ClosedWalk*>& closedWalksToMerge,
 	closedWalksToMerge.pop_back();
 }
 
+void SwitchboardControllabilityModel::checkParameters() const {
+    if (m_pTargets != 0) {
+        throw not_supported_error("switchboard dynamics does not allow "
+                "restrictions on the set of target nodes");
+    }
+}
+
 void SwitchboardControllabilityModel::calculate() {
     Vector inDegrees, outDegrees;
 	Vector::const_iterator it;
     long int i, j, n = m_pGraph->vcount();
     long int balancedCount = 0;
+
+    if (m_pTargets != 0) {
+        throw not_supported_error("switchboard dynamics does not allow "
+                "restrictions on the set of target nodes");
+    }
 
 #define IS_BALANCED(i) ((outDegrees[i] == inDegrees[i]) && outDegrees[i] > 0)
 
@@ -246,7 +259,7 @@ void SwitchboardControllabilityModel::clearControlPaths() {
 
 ControllabilityModel* SwitchboardControllabilityModel::clone() {
     SwitchboardControllabilityModel* result =
-        new SwitchboardControllabilityModel(m_pGraph);
+        new SwitchboardControllabilityModel(m_pGraph, m_pTargets);
     result->setControllabilityMeasure(this->controllabilityMeasure());
     return result;
 }
@@ -340,6 +353,8 @@ Vector SwitchboardControllabilityModel::driverNodes() const {
 }
 
 Vector SwitchboardControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+    checkParameters();
+
     Vector degreeDiffs, outDegrees;
     Vector result(m_pGraph->ecount());
     EdgeSelector es = E(m_pGraph);
@@ -473,6 +488,9 @@ void SwitchboardControllabilityModel::setGraph(Graph* graph) {
     clearControlPaths();
 }
 
+bool SwitchboardControllabilityModel::supportsEdgeClasses() const {
+    return false;
+}
 
 /*************************************************************************/
 

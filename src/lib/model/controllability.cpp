@@ -8,6 +8,9 @@ igraph::Vector ControllabilityModel::changesInDriverNodesAfterEdgeRemoval() cons
     return igraph::Vector();
 }
 
+void ControllabilityModel::checkParameters() const {
+}
+
 std::vector<EdgeClass> ControllabilityModel::edgeClasses() const {
     return std::vector<EdgeClass>();
 }
