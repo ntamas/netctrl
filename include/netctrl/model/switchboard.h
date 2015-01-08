@@ -9,6 +9,8 @@
 
 namespace netctrl {
 
+class SwitchboardControlPath;
+
 /// Switchboard controllability model
 class SwitchboardControllabilityModel : public ControllabilityModel {
 public:
@@ -82,7 +84,7 @@ private:
      * \return a newly allocated control path whose ownership is transferred to
      *         the caller
      */
-    std::auto_ptr<ControlPath> createControlPathFromNode(long int start,
+    std::auto_ptr<SwitchboardControlPath> createControlPathFromNode(long int start,
             igraph::VectorBool& edgeUsed, igraph::Vector& outDegrees,
             igraph::Vector& inDegrees) const;
     
@@ -100,14 +102,35 @@ private:
             const igraph::Vector& degreeDiffs) const;
 };
 
+class ClosedWalk;
+
+/// Superclass for all the control paths that occur in the switchboard dynamics
+class SwitchboardControlPath : public ControlPath {
+public:
+    /// Creates an empty control path
+    SwitchboardControlPath() : ControlPath() {}
+
+    /// Creates a control path with the given nodes
+    explicit SwitchboardControlPath(const igraph::Vector& nodes)
+        : ControlPath(nodes) {}
+
+    /// Extends the control path with a closed walk.
+    /**
+     * \param   walk  the closed walk to extend this path with
+     * \throws  runtime_error  if the control path and the closed walk share no
+     *                         common nodes
+     */
+    void extendWith(const ClosedWalk* walk);
+};
+
 /// Control path that represents a directed open walk
-class OpenWalk : public ControlPath {
+class OpenWalk : public SwitchboardControlPath {
 public:
     /// Creates an empty open walk
-    OpenWalk() : ControlPath() {}
+    OpenWalk() : SwitchboardControlPath() {}
 
     /// Creates an open walk with the given nodes
-    explicit OpenWalk(const igraph::Vector& nodes) : ControlPath(nodes) {}
+    explicit OpenWalk(const igraph::Vector& nodes) : SwitchboardControlPath(nodes) {}
 
     /// Returns the edges involved in the open walk
     virtual igraph::Vector edges(const igraph::Graph& graph) const;
@@ -127,13 +150,13 @@ public:
 };
 
 /// Control path that represents a closed walk
-class ClosedWalk : public ControlPath {
+class ClosedWalk : public SwitchboardControlPath {
 public:
     /// Creates a closed walk
-    ClosedWalk() : ControlPath() {}
+    ClosedWalk() : SwitchboardControlPath() {}
 
     /// Creates a closed walk with the given nodes
-    explicit ClosedWalk(const igraph::Vector& nodes) : ControlPath(nodes) {}
+    explicit ClosedWalk(const igraph::Vector& nodes) : SwitchboardControlPath(nodes) {}
 
     /// Returns \c false since closed walks do not require independent input signals
     virtual bool needsInputSignal() const {

@@ -1,5 +1,6 @@
 /* vim:set ts=4 sw=4 sts=4 et: */
 
+#include <cassert>
 #include <deque>
 #include <set>
 #include <sstream>
@@ -21,8 +22,116 @@ SwitchboardControllabilityModel::~SwitchboardControllabilityModel() {
     clearControlPaths();
 }
 
+/**
+ * \brief Finds another control path adjacent to the given control path, given
+ *        a mapping from nodes to control paths.
+ *
+ * \param  path  the path for which we need to find an adjacent control path
+ * \param  controlPathsByNodes  a node-to-path mapping to use
+ * \return another control path that shares at least one node with the given
+ *         control path, or \c NULL if there is no such path.
+ */
+SwitchboardControlPath* findControlPathAdjacentTo(
+		SwitchboardControlPath* path,
+		std::vector<SwitchboardControlPath*>& controlPathsByNodes
+) {
+	const Vector& nodes = path->nodes();
+	Vector::const_iterator it;
+	long int node;
+	SwitchboardControlPath* otherPath;
+
+	for (it = nodes.begin(); it != nodes.end(); it++) {
+		node = static_cast<long int>(*it);
+		otherPath = controlPathsByNodes[node];
+		if (otherPath != NULL && otherPath != path) {
+			return otherPath;
+		}
+	}
+	return NULL;
+}
+
+/**
+ * \brief Assigns a set of nodes to a control path in a node-to-path mapping.
+ *
+ * This is a helper function for \c "SwitchboardControllabilityModel::calculate()".
+ *
+ * \param  controlPathsByNodes  a node-to-path mapping to update
+ * \param  path    the path to be assigned to the nodes
+ * \param  pNodes  pointer to a vector holding the nodes that are to be assigned to
+ *                 the path. When null, it is assumed to be the same as the nodes
+ *                 of the path.
+ */
+void updateControlPathsByNodesMapping(
+		std::vector<SwitchboardControlPath*>& controlPathsByNodes,
+		SwitchboardControlPath* path,
+		const Vector* pNodes = 0
+) {
+	const Vector& nodes = pNodes ? *pNodes : path->nodes();
+	long int node;
+
+	for (Vector::const_iterator it = nodes.begin(); it != nodes.end(); it++) {
+		node = static_cast<long int>(*it);
+		controlPathsByNodes[node] = path;
+	}
+}
+
+/**
+ * \brief Tries to merge closed walks into other control paths that share
+ *        at least one node with the closed walk.
+ *
+ * \param  closedWalksToMerge  a queue containing the closed walks that we
+ *                             attempt to merge
+ * \param  controlPathsByNodes a mapping from nodes to control paths that
+ *                             contain the node
+ */
+void tryToMergeClosedWalks(std::deque<ClosedWalk*>& closedWalksToMerge,
+		std::vector<SwitchboardControlPath*>& controlPathsByNodes) {
+	bool finished = false;
+	ClosedWalk* closedWalk;
+	SwitchboardControlPath* adjacentControlPath;
+
+	// Put a sentinel in closedWalksToMerge so we know when we are about
+	// to wrap around.
+	closedWalksToMerge.push_back(NULL);
+
+	while (!finished) {
+		finished = true;
+
+		// For each walk in closedWalksToMerge...
+		while (true) {
+			closedWalk = closedWalksToMerge.front();
+			closedWalksToMerge.pop_front();
+
+			if (closedWalk == NULL) {
+				// Wrapped around so put the sentinel back and quit here.
+				closedWalksToMerge.push_back(NULL);
+				break;
+			}
+
+			// Test whether the closed walk could be joined with an adjacent
+			// open or closed walk
+			adjacentControlPath = findControlPathAdjacentTo(closedWalk, controlPathsByNodes);
+
+			// If we have an adjacent walk, join the closed walk to it.
+			// Otherwise put the closed walk back into the queue.
+			if (adjacentControlPath != NULL) {
+				adjacentControlPath->extendWith(closedWalk);
+				updateControlPathsByNodesMapping(controlPathsByNodes,
+						adjacentControlPath, &closedWalk->nodes());
+				finished = false;
+			} else {
+				closedWalksToMerge.push_back(closedWalk);
+			}
+        }
+    }
+
+	// Pop the sentinel.
+	closedWalksToMerge.pop_back();
+}
+
 void SwitchboardControllabilityModel::calculate() {
     Vector inDegrees, outDegrees;
+	Vector::const_iterator it;
     long int i, j, n = m_pGraph->vcount();
     long int balancedCount = 0;
 
@@ -72,18 +181,23 @@ void SwitchboardControllabilityModel::calculate() {
 
 	// Declare some more variables that we will need.
     VectorBool edgeUsed(m_pGraph->ecount());
-	std::auto_ptr<ControlPath> path;
+	std::vector<SwitchboardControlPath*> controlPathsByNodes(n);
+	std::auto_ptr<SwitchboardControlPath> path;
+	std::deque<ClosedWalk*> closedWalksToMerge;
 
     // Start stems from each divergent node until there are no more divergent
 	// nodes. We are lucky here because m_driverNodes contains all the divergent
 	// nodes by now -- the only catch is that the last few nodes in m_driverNodes
 	// are balanced, but we simply skip those for the time being.
-    for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
+    for (it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
 		// While the node is divergent...
         while (outDegrees[*it] > inDegrees[*it]) {
-            // Select an arbitrary outgoing edge and follow it until we get stuck,
-			// then store it as a closed or open walk
+            // Select an arbitrary outgoing edge and follow it until we get stuck.
 			path = createControlPathFromNode(*it, edgeUsed, outDegrees, inDegrees);
+
+			// For each node in the path, associate the path to the node in
+			// controlPathsByNodes and then store the path.
+			updateControlPathsByNodesMapping(controlPathsByNodes, path.get());
 			m_controlPaths.push_back(path.release());
         }
     }
@@ -94,12 +208,33 @@ void SwitchboardControllabilityModel::calculate() {
     for (i = 0; i < n; i++) {
 		// While the node still has any outbound edges left...
         while (outDegrees[i] > 0) {
-            // Select an arbitrary outgoing edge and follow it until we get stuck,
-			// then store it as a closed or open walk
+            // Select an arbitrary outgoing edge and follow it until we get stuck
+			// and construct a closed walk
 			path = createControlPathFromNode(i, edgeUsed, outDegrees, inDegrees);
-			m_controlPaths.push_back(path.release());
-        }
-    }
+
+			// Store the closed walk in a deque that holds closed walks that could
+			// be potentially merged with other open or closed walks
+			closedWalksToMerge.push_back(static_cast<ClosedWalk*>(path.release()));
+		}
+	}
+
+	// Try to merge closed walks into adjacent (open) walks
+	tryToMergeClosedWalks(closedWalksToMerge, controlPathsByNodes);
+
+	// Okay, if we are here, all the closed walks that could have been
+	// merged into open walks are merged to open walks. All that's left are
+	// closed walks that could be merged with each other.
+	std::deque<ClosedWalk*>::const_iterator it2;
+	for (it2 = closedWalksToMerge.begin(); it2 != closedWalksToMerge.end(); it2++) {
+		updateControlPathsByNodesMapping(controlPathsByNodes, *it2);
+	}
+
+	// Try to merge closed walks into adjacent (open or closed) walks
+	tryToMergeClosedWalks(closedWalksToMerge, controlPathsByNodes);
+
+	// Any remaining closed walks must be stored into the result
+	std::copy(closedWalksToMerge.begin(), closedWalksToMerge.end(),
+			std::back_inserter(m_controlPaths));
 }
 
 void SwitchboardControllabilityModel::clearControlPaths() {
@@ -148,11 +283,12 @@ std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const 
     return m_controlPaths;
 }
 
-std::auto_ptr<ControlPath> SwitchboardControllabilityModel::createControlPathFromNode(
-		long int start, VectorBool& edgeUsed, Vector& outDegrees, Vector& inDegrees) const {
+std::auto_ptr<SwitchboardControlPath>
+SwitchboardControllabilityModel::createControlPathFromNode(long int start,
+		VectorBool& edgeUsed, Vector& outDegrees, Vector& inDegrees) const {
 	long int v, w;
 	Vector walk, incs;
-	ControlPath* path;
+	SwitchboardControlPath* path;
 
 	v = start;
 	while (v != -1) {
@@ -196,7 +332,7 @@ std::auto_ptr<ControlPath> SwitchboardControllabilityModel::createControlPathFro
 		path = new ClosedWalk(walk);
 	}
 
-	return std::auto_ptr<ControlPath>(path);
+	return std::auto_ptr<SwitchboardControlPath>(path);
 }
 
 Vector SwitchboardControllabilityModel::driverNodes() const {
@@ -339,6 +475,37 @@ void SwitchboardControllabilityModel::setGraph(Graph* graph) {
 
 
 /*************************************************************************/
+
+
+void SwitchboardControlPath::extendWith(const ClosedWalk* walk) {
+	const Vector& closedWalkNodes = walk->nodes();
+	std::set<long int> closedWalkNodeSet(closedWalkNodes.begin(), closedWalkNodes.end());
+	std::set<long int>::const_iterator notFound = closedWalkNodeSet.end();
+    Vector::const_iterator it, end = m_nodes.end();
+	long int pos, closedWalkPos, i, j, n;
+
+	for (it = m_nodes.begin(), pos=0; it != end; it++, pos++) {
+		if (closedWalkNodeSet.find(*it) == notFound)
+			continue;
+
+		assert(closedWalkNodes.search(0, *it, &closedWalkPos));
+
+		m_nodes.resize(m_nodes.size() + closedWalkNodes.size());
+
+		n = pos + closedWalkNodes.size();
+		for (i = m_nodes.size()-closedWalkNodes.size()-1, j = m_nodes.size()-1;
+				i >= pos; i--, j--) {
+			m_nodes[j] = m_nodes[i];
+		}
+		for (i = pos, j = closedWalkPos; i < n; i++, j++) {
+			if (j == closedWalkNodes.size()) {
+				j = 0;
+			}
+			m_nodes[i] = closedWalkNodes[j];
+		}
+		break;
+	}
+}
 
 
 Vector OpenWalk::edges(const Graph& graph) const {
