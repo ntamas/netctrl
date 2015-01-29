@@ -550,6 +550,16 @@ std::string OpenWalk::toString() const {
 	return oss.str();
 }
 
+std::string OpenWalk::toString(const std::vector<std::string>& vertexNames) const {
+	std::ostringstream oss;
+
+	oss << "Open walk:";
+	for (Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+		oss << ' ' << vertexNames[*it];
+	}
+
+	return oss.str();
+}
 
 Vector ClosedWalk::edges(const Graph& graph) const {
     Vector result;
@@ -581,6 +591,17 @@ std::string ClosedWalk::toString() const {
 	oss << "Closed walk:";
 	for (Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
 		oss << ' ' << *it;
+	}
+
+	return oss.str();
+}
+
+std::string ClosedWalk::toString(const std::vector<std::string>& vertexNames) const {
+	std::ostringstream oss;
+
+	oss << "Closed walk:";
+	for (Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+		oss << ' ' << vertexNames[*it];
 	}
 
 	return oss.str();

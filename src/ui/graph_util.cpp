@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <igraph/cpp/io.h>
+#include <igraph/cpp/vertex.h>
 #include "graph_util.h"
 
 using namespace std;
@@ -43,6 +44,26 @@ GraphFormat GraphUtil::detectFormat(const string& filename) {
         return GRAPH_FORMAT_GRAPHML;
 
     return GRAPH_FORMAT_UNKNOWN;
+}
+
+vector<string> GraphUtil::getVertexNames(const Graph& graph,
+        const string nameAttribute) {
+    long int i, n = graph.vcount();
+    vector<string> result(n);
+    Graph& graph0 = const_cast<Graph&>(graph);
+
+    for (i = 0; i < n; i++) {
+        any name(graph0.vertex(i).getAttribute(nameAttribute, i));
+        if (name.type() == typeid(string)) {
+            result[i] = name.as<string>();
+        } else {
+            stringstream ss;
+            ss << name.as<long int>();
+            result[i] = ss.str();
+        }
+    }
+
+    return result;
 }
 
 Graph GraphUtil::readGraph(const string& filename, GraphFormat format, bool directed) {

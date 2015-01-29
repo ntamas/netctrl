@@ -98,8 +98,8 @@ DirectedMatching LiuControllabilityModel::calculateTargetedMatching(
 
     iter = 0;
     while (currentTargets.size() > 0) {
-        printf("Iteration %ld; targets = ", iter);
-        currentTargets.print();
+        // printf("Iteration %ld; targets = ", iter);
+        // currentTargets.print();
     
         // Construct the bipartite graph on which we are going to work
         ctrl.graph = this->constructBipartiteGraph(&currentTargets, &ctrl.mapping);
@@ -130,7 +130,7 @@ DirectedMatching LiuControllabilityModel::calculateTargetedMatching(
                 // TODO: make sure that currentTargets is unique
             }
             result.setMatch(u, v);
-            printf("Matching vertex %ld to %ld\n", u, v);
+            // printf("Matching vertex %ld to %ld\n", u, v);
         }
         iter++;
     }
@@ -596,6 +596,17 @@ std::string Stem::toString() const {
 	return oss.str();
 }
 
+std::string Stem::toString(const std::vector<std::string>& vertexNames) const {
+	std::ostringstream oss;
+
+	oss << "Stem:";
+	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+		oss << ' ' << vertexNames[*it];
+	}
+
+	return oss.str();
+}
+
 igraph::Vector Bud::edges(const igraph::Graph& graph) const {
     igraph::Vector result;
 
@@ -629,6 +640,20 @@ std::string Bud::toString() const {
 	}
     if (stem() != 0) {
         oss << " (assigned to " << stem()->toString() << ")";
+    }
+
+	return oss.str();
+}
+
+std::string Bud::toString(const std::vector<std::string>& vertexNames) const {
+	std::ostringstream oss;
+
+	oss << "Bud:";
+	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+		oss << ' ' << vertexNames[*it];
+	}
+    if (stem() != 0) {
+        oss << " (assigned to " << stem()->toString(vertexNames) << ")";
     }
 
 	return oss.str();

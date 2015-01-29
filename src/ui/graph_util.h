@@ -36,6 +36,10 @@ public:
     /// Converts a string into the corresponding GraphFormat constant
     static GraphFormat formatFromString(const std::string& str);
 
+    /// Returns a vector containing the name of each vertex of a the graph
+    static std::vector<std::string> getVertexNames(const igraph::Graph& graph,
+            const std::string nameAttribute="name");
+
     /// Reads a graph without having to know what format it is in
     static igraph::Graph readGraph(const std::string& filename,
             GraphFormat format = GRAPH_FORMAT_AUTO,

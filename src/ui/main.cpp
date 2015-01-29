@@ -269,11 +269,12 @@ public:
 
         std::vector<ControlPath*> paths = m_pModel->controlPaths();
         std::ostream& out = getOutputStream();
+        std::vector<std::string> names = GraphUtil::getVertexNames(*m_pModel->graph());
 
         info(">> found %d control path(s)", paths.size());
         for (std::vector<ControlPath*>::const_iterator it = paths.begin();
                 it != paths.end(); it++) {
-            out << (*it)->toString() << '\n';
+            out << (*it)->toString(names) << '\n';
         }
 
         return 0;
@@ -286,15 +287,11 @@ public:
 
         Vector driver_nodes = m_pModel->driverNodes();
         std::ostream& out = getOutputStream();
+        std::vector<std::string> names = GraphUtil::getVertexNames(*m_pModel->graph());
 
         info(">> found %d driver node(s)", driver_nodes.size());
         for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
-            any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
-            if (name.type() == typeid(std::string)) {
-                out << name.as<std::string>() << '\n';
-            } else {
-                out << name.as<long int>() << '\n';
-            }
+            out << names[*it] << '\n';
         }
 
         return 0;

@@ -189,6 +189,14 @@ public:
 
     /// Returns a string representation of the control path
     virtual std::string toString() const = 0;
+
+    /**
+     * \brief Returns a string representation of the control path, using the
+     * given mapping to obtain vertex names.
+     *
+     * \param  vertexNames  a vector that contains the names of the vertices
+     */
+    virtual std::string toString(const std::vector<std::string>& vertexNames) const = 0;
 };
 
 }       // end of namespace

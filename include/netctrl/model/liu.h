@@ -128,6 +128,14 @@ public:
 
     /// Returns a string representation of the stem
     virtual std::string toString() const;
+
+    /**
+     * \brief Returns a string representation of the control path, using the
+     * given mapping to obtain vertex names.
+     *
+     * \param  vertexNames  a vector that contains the names of the vertices
+     */
+    virtual std::string toString(const std::vector<std::string>& vertexNames) const;
 };
 
 /// Control path that represents a bud
@@ -173,6 +181,14 @@ public:
 
     /// Returns a string representation of the bud
     virtual std::string toString() const;
+
+    /**
+     * \brief Returns a string representation of the control path, using the
+     * given mapping to obtain vertex names.
+     *
+     * \param  vertexNames  a vector that contains the names of the vertices
+     */
+    virtual std::string toString(const std::vector<std::string>& vertexNames) const;
 };
 
 }       // end of namespace
