@@ -91,16 +91,29 @@ void LiuControllabilityModel::calculate() {
 
 DirectedMatching LiuControllabilityModel::calculateTargetedMatching(
         Vector* pTargets) {
-    long int i, n = m_pGraph->vcount(), u, v, iter;
+    long int i, n, numVertices = m_pGraph->vcount(), u, v, iter;
     ControllabilityGraph ctrl;
     Vector currentTargets(*pTargets);
-    DirectedMatching result(n);
+    DirectedMatching result(numVertices);
 
     iter = 0;
     while (currentTargets.size() > 0) {
-        // printf("Iteration %ld; targets = ", iter);
-        // currentTargets.print();
+        printf("Iteration %ld; targets = ", iter);
+        currentTargets.print();
     
+        // Are all the targets matched already? If so, we can return.
+        bool allTargetsMatched = true;
+        n = currentTargets.size();
+        for (i = 0; i < n; i++) {
+            if (!result.isMatched(currentTargets[i])) {
+                allTargetsMatched = false;
+                break;
+            }
+        }
+        if (allTargetsMatched) {
+            break;
+        }
+
         // Construct the bipartite graph on which we are going to work
         ctrl.graph = this->constructBipartiteGraph(&currentTargets, &ctrl.mapping);
         ctrl.numTargets = currentTargets.size();
@@ -121,27 +134,39 @@ DirectedMatching LiuControllabilityModel::calculateTargetedMatching(
                 // Temporarily match node to itself so it will appear as
                 // matched in subsequent runs. This is required for the
                 // algorithm to terminate properly.
-                u = v;
+                if (result.isMatched(v)) {
+                    printf("Vertex %ld was matched to %ld but now matched to itself\n",
+                            v, result.matchIn(v));
+                } else {
+                    printf("Vertex %ld is matched to itself\n", v);
+                }
+                result.setMatch(v, v);
             } else {
                 u = ctrl.mapToOriginalVertexIndex(matching[i]);
-                if (!result.isMatched(u)) {
-                    currentTargets.push_back(u);
+                currentTargets.push_back(u);
+                if (result.isMatched(v)) {
+                    printf("Vertex %ld was matched to %ld but now matched to %ld\n",
+                            v, result.matchIn(v), u);
+                } else {
+                    printf("Vertex %ld is matched to %ld\n", v, u);
                 }
-                // TODO: make sure that currentTargets is unique
+                result.setMatch(u, v);
             }
-            result.setMatch(u, v);
-            // printf("Matching vertex %ld to %ld\n", u, v);
         }
         iter++;
     }
 
     // Find all the nodes that have been matched to itself and unmatch
     // them so they become stems
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < numVertices; i++) {
         if (result.matchIn(i) == i) {
             result.unmatch(i);
         }
     }
+
+    // Clean up the matching to ensure that all stems terminate in target
+    // nodes
+    cleanupTargetedMatching(result);
 
     return result;
 }
@@ -166,6 +191,75 @@ DirectedMatching LiuControllabilityModel::calculateUntargetedMatching() {
     matching.resize(n);
 
     return DirectedMatching(matching);
+}
+
+void LiuControllabilityModel::cleanupTargetedMatching(DirectedMatching& matching) {
+    long int n = m_pGraph->vcount(), u, v;
+    Vector nodeQueue;
+
+    // If the matching is untargeted, there is nothing to do.
+    if (m_pTargets == NULL)
+        return;
+
+    // Create a set that contains the target nodes
+    std::set<long int> targetSet(m_pTargets->begin(), m_pTargets->end());
+    std::set<long int>::const_iterator targetSetEnd = targetSet.end();
+
+    // Find the set of nodes that are matched, are not in the target set, and do
+    // not match any other node (1). These nodes and the edges that they are
+    // matched through can safely be deleted. We can also delete nodes that are
+    // not in the target set, are \em matching exactly one other node, and are
+    // not matched by any other node (2).
+    for (v = 0; v < n; v++) {
+        bool isTarget = targetSet.find(v) != targetSetEnd;
+        if (isTarget)
+            continue;
+
+        if (matching.isMatched(v)) {
+            // Case (1)
+            if (!matching.isMatching(v)) {
+                printf("Pushing %ld with case (1)\n", v);
+                nodeQueue.push_back(v);
+            }
+        } else {
+            // Case (2)
+            if (matching.isMatchingExactlyOne(v)) {
+                printf("Pushing %ld with case (2)\n", v);
+                nodeQueue.push_back(-v-1);
+            }
+        }
+    }
+
+    // Remove the nodes in the node queue iteratively
+    while (!nodeQueue.empty()) {
+        bool backward;
+
+        v = nodeQueue.pop_back();
+        backward = (v >= 0);
+        if (backward) {
+            // v has to be deleted because of case (1)
+            u = matching.matchIn(v);
+            matching.unmatch(v);
+            printf("Removed %ld --> %ld from mapping\n", u, v);
+            // Maybe u will become a new node to be deleted?
+            if (matching.isMatched(u) && targetSet.find(u) == targetSetEnd &&
+                    !matching.isMatching(u)) {
+                printf("Pushing %ld with case (1)\n", u);
+                nodeQueue.push_back(u);
+            }
+        } else {
+            v = -v-1;
+            // v has to be deleted because of case (2)
+            u = (*matching.matchOut(v))[0];
+            printf("Removed %ld --> %ld from mapping\n", v, u);
+            matching.unmatch(u);
+            // Maybe u will become a new node to be deleted?
+            if (targetSet.find(u) == targetSetEnd && matching.isMatchingExactlyOne(u)) {
+                printf("Pushing %ld with case (2)\n", u);
+                nodeQueue.push_back(-u-1);
+            }
+        }
+    }
 }
 
 void LiuControllabilityModel::clearControlPaths() {
@@ -485,7 +579,7 @@ void LiuControllabilityModel::calculateControlPaths() {
     clearControlPaths();
 
     // Construct stems from each driver node. At the same time, create a vector that
-    // maps vertices to one of the stems they belong to (which will be need to
+    // maps vertices to one of the stems they belong to (which will be needed to
     // attach buds to stems) and another one that marks vertices that have already
     // been assigned to stems or buds.
     std::vector<Stem*> verticesToStems(n);
@@ -532,7 +626,17 @@ void LiuControllabilityModel::calculateControlPaths() {
             bud->appendNode(v);
             vertexUsed[v] = true;
             v = m_matching.matchIn(v);
+            if (v == -1) {
+                // Well, this is a stem that does not include a driver node.
+                // It is not entirely clear to me how it happens (for targeted
+                // version only), but let's break out here.
+                delete bud;
+                bud = NULL;
+                break;
+            }
         }
+        if (bud == NULL)
+            continue;
 
         if (bud->size() > 1 && bud->nodes().front() == bud->nodes().back()) {
             bud->nodes().pop_back();

@@ -56,11 +56,19 @@ public:
     }
 
     /**
-     * Returns whether the given node matches at least one other node.
+     * Returns whether the given node matches \em "at least" one other node.
      */
     bool isMatching(long int u) const {
         OutMapping::const_iterator it = m_outMapping.find(u);
         return it != m_outMapping.end() && !it->second.empty();
+    }
+
+    /**
+     * Returns whether the given node matches \em exactly one other node.
+     */
+    bool isMatchingExactlyOne(long int u) const {
+        OutMapping::const_iterator it = m_outMapping.find(u);
+        return it != m_outMapping.end() && it->second.size() == 1;
     }
 
     /**

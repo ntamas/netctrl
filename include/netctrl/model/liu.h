@@ -58,6 +58,17 @@ protected:
     /// Calculates a matching that matches all the nodes to controllers.
     DirectedMatching calculateUntargetedMatching();
 
+    /// Cleans up a targeted matching by removing unnecessary edges from it.
+    /**
+     * This is useful only for targeted matchings - such matchings may include
+     * edges where neither the tail nor the head of the edge is a target. If
+     * the vertex at the head of the edge does not match any other node, it can
+     * be removed from the matching.
+     *
+     * \param  matching  the matching to clean up
+     */
+    void cleanupTargetedMatching(DirectedMatching& matching);
+
     /// Removes all the control paths from the previous run (if any)
     void clearControlPaths();
 

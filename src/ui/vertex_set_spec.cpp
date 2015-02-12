@@ -54,16 +54,22 @@ igraph::Vector VertexSetSpecificationParser::getStructuralPropertyVector(
 
 const map<string, int>& VertexSetSpecificationParser::getVertexNameMapping() const {
     if (!m_vertexNameMappingValid) {
-        AttributeValueVector names = V(m_pGraph).getAttribute("name");
-        AttributeValueVector::const_iterator it = names.begin();
-        AttributeValueVector::const_iterator end = names.end();
-        int index = 0;
+        int index, numVertices = m_pGraph->vcount();
 
-        while (it != end) {
-            string name = *(it->as<string>());
-            m_vertexNameMapping[name] = index;
-            it++;
-            index++;
+        if (V(m_pGraph).hasAttribute("name")) {
+            AttributeValueVector names = V(m_pGraph).getAttribute("name");
+            AttributeValueVector::const_iterator it, end = names.end();
+
+            for (index = 0, it = names.begin(); it != end; it++, index++) {
+                string name = *(it->as<string>());
+                m_vertexNameMapping[name] = index;
+            }
+        } else {
+            for (index = 0; index < numVertices; index++) {
+                stringstream ss;
+                ss << index;
+                m_vertexNameMapping[ss.str()] = index;
+            }
         }
 
         m_vertexNameMappingValid = true;
