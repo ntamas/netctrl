@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iterator>
@@ -181,6 +182,12 @@ public:
         int retval;
 
         m_args.parse(argc, argv);
+
+        if (!m_args.useRandomSeed) {
+            m_args.randomSeed = time(0);
+        }
+        info(">> using random seed: %u", m_args.randomSeed);
+        srand(m_args.randomSeed);
 
         info(">> loading graph: %s", m_args.inputFile.c_str());
         m_pGraph = loadGraph(m_args.inputFile, m_args.inputFormat);

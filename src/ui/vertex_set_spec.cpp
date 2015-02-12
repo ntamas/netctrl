@@ -3,7 +3,9 @@
 #include <igraph/cpp/centrality.h>
 #include <igraph/cpp/vector_long.h>
 #include <igraph/cpp/vertex_selector.h>
+#include <cstdlib>
 #include <sstream>
+#include "random.hpp"
 #include "vertex_set_spec.h"
 
 using namespace igraph;
@@ -41,8 +43,13 @@ igraph::Vector VertexSetSpecificationParser::getStructuralPropertyVector(
         return m_pGraph->degree(V(m_pGraph), IGRAPH_OUT, true);
     } else if (prop == "betweenness") {
         return betweenness(*m_pGraph, V(m_pGraph));
+    } else if (prop == "random") {
+        Vector result(m_pGraph->vcount());
+        generate(result.begin(), result.end(), rng_uniform<Vector::value_type>());
+        return result;
+    } else {
+        return Vector(m_pGraph->vcount());
     }
-    return Vector(m_pGraph->vcount());
 }
 
 const map<string, int>& VertexSetSpecificationParser::getVertexNameMapping() const {
@@ -66,7 +73,7 @@ const map<string, int>& VertexSetSpecificationParser::getVertexNameMapping() con
 
 bool VertexSetSpecificationParser::isValidStructuralProperty(const string& prop) const {
     return (prop == "degree" || prop == "indegree" || prop == "outdegree" ||
-            prop == "betweenness");
+            prop == "betweenness" || prop == "random");
 }
 
 set<int> VertexSetSpecificationParser::parse(const string& spec) const {

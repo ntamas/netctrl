@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "cmd_arguments.h"
 
@@ -12,7 +13,8 @@ using namespace SimpleOpt;
 
 enum {
     HELP=30000, VERSION, VERBOSE, QUIET, USE_STDIN, OUT_FILE, MODEL,
-    MODE, USE_EDGE, INPUT_FORMAT, OUTPUT_FORMAT, ADD_TARGET_SPEC
+    MODE, USE_EDGE, INPUT_FORMAT, OUTPUT_FORMAT, ADD_TARGET_SPEC,
+    RANDOM_SEED
 };
 
 CommandLineArguments::CommandLineArguments(
@@ -44,6 +46,7 @@ CommandLineArguments::CommandLineArguments(
     addOption(ADD_TARGET_SPEC, "-t", SO_REQ_SEP, "--target");
 
     addOption(USE_EDGE, "-e", SO_NONE, "--edge");
+    addOption(RANDOM_SEED, "-s", SO_REQ_SEP, "--seed");
 }
 
 void CommandLineArguments::addOption(int id, const char* option,
@@ -63,6 +66,13 @@ void CommandLineArguments::addOption(int id, const char* option,
 int CommandLineArguments::handleFormatOption(const std::string& arg, GraphFormat* pFormat) {
     *pFormat = GraphUtil::formatFromString(arg);
     return *pFormat == GRAPH_FORMAT_UNKNOWN;
+}
+
+int CommandLineArguments::handleRandomSeedOption(const std::string& arg,
+        unsigned int* seed) {
+    stringstream ss(arg);
+    ss >> *seed;
+    return ss.fail();
 }
 
 int CommandLineArguments::handleOption(int id, const std::string& arg) {
@@ -157,6 +167,18 @@ void CommandLineArguments::parse(int argc, char** argv) {
                 useEdgeMeasure = true;
                 break;
 
+            case RANDOM_SEED:
+                arg = args.OptionArg() ? args.OptionArg() : "";
+                ret = handleRandomSeedOption(arg, &randomSeed);
+                if (ret) {
+                    cerr << "Cannot parse random seed: " << arg << '\n';
+                    ret = 1;
+                } else {
+                    useRandomSeed = true;
+                    ret = -1;
+                }
+                break;
+
             /* Processing format options parameters */
             case INPUT_FORMAT:
                 arg = args.OptionArg() ? args.OptionArg() : "";
@@ -236,6 +258,7 @@ void CommandLineArguments::showHelp(ostream& os) const {
           "Advanced algorithm parameters:\n"
           "    -e, --edge          use the edge-based controllability measure for the\n"
           "                        switchboard model.\n"
+          "    -s, --seed          use the given number to seed the random number generator.\n"
           "\n"
           "Input/output format:\n"
           "    -f, --input-format  specifies the input format for reading graphs.\n"

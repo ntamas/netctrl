@@ -59,8 +59,14 @@ public:
     /* Advanced parameters */
     /***********************/
 
+    /// The random seed to use when \c useRandomSeed is set to \c true
+    unsigned int randomSeed;
+
     /// Flag to denote whether we are using the edge-based measure for SBD
     bool useEdgeMeasure;
+
+    /// Flag to denote whether we are using an explicit random seed
+    bool useRandomSeed;
 
     /***************************/
     /* Input/output parameters */
@@ -96,6 +102,9 @@ public:
 protected:
     /// Handles an option which takes a graph format as a parameter.
     int handleFormatOption(const std::string& arg, GraphFormat* pFormat);
+
+    /// Handles an option which takes a random seed as a parameter.
+    int handleRandomSeedOption(const std::string& arg, unsigned int* seed);
 };
 
 #endif     // _CMD_ARGUMENTS_BASE_H
