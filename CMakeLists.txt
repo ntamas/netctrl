@@ -21,7 +21,8 @@ option(PREFER_STATIC_LIBRARIES
 #####################################################################
 
 set(NETCTRL_VERSION_MAJOR 0)
-set(NETCTRL_VERSION_MINOR 1)
+set(NETCTRL_VERSION_MINOR 2)
+set(NETCTRL_VERSION_PATCH 0)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/netctrl/version.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/include/netctrl/version.h)
@@ -73,7 +74,7 @@ include_directories(${igraph_INCLUDE_DIRS}
 
 set(CPACK_PACKAGE_VERSION_MAJOR ${NETCTRL_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${NETCTRL_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION_PATCH ${NETCTRL_VERSION_PATCH})
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_STRIP_FILES "bin/netctrl")
 include(CPack)
