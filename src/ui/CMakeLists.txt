@@ -1,6 +1,6 @@
-add_executable(netctrl main
-                       cmd_arguments
-                       graph_util)
+add_executable(netctrl main.cpp
+                       cmd_arguments.cpp
+                       graph_util.cpp)
 target_link_libraries(netctrl netctrl0 igraphpp ${igraph_LIBRARIES})
 
 install(TARGETS netctrl

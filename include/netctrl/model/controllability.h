@@ -58,7 +58,7 @@ public:
      *         an empty vector indicating that such a calculation is not implemented
      *         or not feasible.
      */
-    virtual igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+    virtual igraph::VectorInt changesInDriverNodesAfterEdgeRemoval() const;
 
     /// Returns the controllability measure of the model after a successful calculation
     virtual float controllability() const = 0;
@@ -71,7 +71,7 @@ public:
     virtual std::vector<ControlPath*> controlPaths() const = 0;
 
     /// Returns the set of driver nodes after a successful calculation
-    virtual igraph::Vector driverNodes() const = 0;
+    virtual igraph::VectorInt driverNodes() const = 0;
 
     /**
      * \brief Returns a vector that classifies edges into four classes: redundant,
@@ -106,13 +106,13 @@ public:
 /// Abstract superclass for control paths (stems and buds)
 class ControlPath {
 protected:
-    igraph::Vector m_nodes;
+    igraph::VectorInt m_nodes;
 
     /// Creates an empty control path
     ControlPath() : m_nodes() {}
 
     /// Creates a control path with the given nodes
-    explicit ControlPath(const igraph::Vector& nodes) : m_nodes(nodes) {}
+    explicit ControlPath(const igraph::VectorInt& nodes) : m_nodes(nodes) {}
 
 public:
     /// Virtual destructor that does nothing
@@ -124,7 +124,7 @@ public:
     }
 
     /// Returns the edges involved in the control path
-    virtual igraph::Vector edges(const igraph::Graph& graph) const = 0;
+    virtual igraph::VectorInt edges(const igraph::Graph& graph) const = 0;
 
     /// Returns a user-friendly name for the control path type
     virtual std::string name() const = 0;
@@ -133,12 +133,12 @@ public:
     virtual bool needsInputSignal() const = 0;
 
     /// Returns the nodes involved in the control path
-    igraph::Vector& nodes() {
+    igraph::VectorInt& nodes() {
         return m_nodes;
     }
 
     /// Returns the nodes involved in the control path (const variant)
-    const igraph::Vector& nodes() const {
+    const igraph::VectorInt& nodes() const {
         return m_nodes;
     }
 

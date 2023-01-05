@@ -6,7 +6,7 @@ Controllability of complex networks with node and edge dynamics
 ---------------------------------------------------------------
 
 :Author: Tamas Nepusz
-:Version: 0.1
+:Version: 0.3.0
 :License: MIT
 
 This program implements algorithms that search for driver nodes in complex
@@ -38,9 +38,7 @@ Compiling from source code
 Requirements
 ------------
 
-- The most recent, up-to-date, bleeding-edge version of igraph_. Really.
-  You need at least igraph_ 0.6 because that's where the bipartite
-  matching algorithm was added.
+- igraph_ version 0.10.3 or later.
 
 - CMake_ to generate the makefiles (or the project file if you are using
   Visual Studio).

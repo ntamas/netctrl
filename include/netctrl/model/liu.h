@@ -3,7 +3,7 @@
 #ifndef NETCTRL_MODEL_LIU_H
 #define NETCTRL_MODEL_LIU_H
 
-#include <igraph/cpp/vector_long.h>
+#include <igraph/cpp/vector_int.h>
 #include <netctrl/model/controllability.h>
 #include <netctrl/util/directed_matching.h>
 
@@ -13,7 +13,7 @@ namespace netctrl {
 class LiuControllabilityModel : public ControllabilityModel {
 private:
     /// The list of driver nodes that was calculated
-    igraph::Vector m_driverNodes;
+    igraph::VectorInt m_driverNodes;
 
     /// The matching that corresponds to the current driver node configuration
     DirectedMatching m_matching;
@@ -35,7 +35,7 @@ public:
     virtual ControllabilityModel* clone();
     virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
-    virtual igraph::Vector driverNodes() const;
+    virtual igraph::VectorInt driverNodes() const;
     virtual std::vector<EdgeClass> edgeClasses() const;
 
     DirectedMatching* matching();
@@ -64,10 +64,10 @@ public:
     Stem() : ControlPath() {}
 
     /// Creates a stem with the given nodes
-    explicit Stem(const igraph::Vector& nodes) : ControlPath(nodes) {}
+    explicit Stem(const igraph::VectorInt& nodes) : ControlPath(nodes) {}
 
     /// Returns the edges involved in the stem
-    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+    virtual igraph::VectorInt edges(const igraph::Graph& graph) const;
 
     /// Returns a user-friendly name for the control path type
     virtual std::string name() const {
@@ -108,11 +108,11 @@ public:
     Bud() : ControlPath(), m_pStem(0) {}
 
     /// Creates a bud with the given nodes
-    explicit Bud(const igraph::Vector& nodes, const Stem* pStem = 0)
+    explicit Bud(const igraph::VectorInt& nodes, const Stem* pStem = 0)
         : ControlPath(nodes), m_pStem(pStem) {}
 
     /// Returns the edges involved in the bud
-    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+    virtual igraph::VectorInt edges(const igraph::Graph& graph) const;
 
     /// Returns a user-friendly name for the control path type
     virtual std::string name() const {

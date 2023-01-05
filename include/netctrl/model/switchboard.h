@@ -22,7 +22,7 @@ public:
 
 private:
     /// The list of driver nodes that was calculated
-    igraph::Vector m_driverNodes;
+    igraph::VectorInt m_driverNodes;
 
     /// The list of control paths that was calculated
     std::vector<ControlPath*> m_controlPaths;
@@ -42,11 +42,11 @@ public:
     virtual ~SwitchboardControllabilityModel();
 
     virtual void calculate();
-    igraph::Vector changesInDriverNodesAfterEdgeRemoval() const;
+    igraph::VectorInt changesInDriverNodesAfterEdgeRemoval() const;
     virtual ControllabilityModel* clone();
     virtual float controllability() const;
     virtual std::vector<ControlPath*> controlPaths() const;
-    virtual igraph::Vector driverNodes() const;
+    virtual igraph::VectorInt driverNodes() const;
     virtual std::vector<EdgeClass> edgeClasses() const;
     virtual void setGraph(igraph::Graph* graph);
 
@@ -85,21 +85,21 @@ private:
      *         the caller
      */
     std::auto_ptr<SwitchboardControlPath> createControlPathFromNode(long int start,
-            igraph::VectorBool& edgeUsed, igraph::Vector& outDegrees,
-            igraph::Vector& inDegrees) const;
+            igraph::VectorBool& edgeUsed, igraph::VectorInt& outDegrees,
+            igraph::VectorInt& inDegrees) const;
     
     /**
      * Checks whether the given vertex v is part of a non-trivial
      * balanced component.
      */
-    bool isInBalancedComponent(long int v, const igraph::Vector& degreeDiffs) const;
+    bool isInBalancedComponent(long int v, const igraph::VectorInt& degreeDiffs) const;
 
     /**
      * Checks whether the given vertex v will be part of a non-trivial
      * balanced component after removing its edge to vertex u.
      */
     bool isInBalancedComponentExcept(long int v, long int u,
-            const igraph::Vector& degreeDiffs) const;
+            const igraph::VectorInt& degreeDiffs) const;
 };
 
 class ClosedWalk;
@@ -111,7 +111,7 @@ public:
     SwitchboardControlPath() : ControlPath() {}
 
     /// Creates a control path with the given nodes
-    explicit SwitchboardControlPath(const igraph::Vector& nodes)
+    explicit SwitchboardControlPath(const igraph::VectorInt& nodes)
         : ControlPath(nodes) {}
 
     /// Extends the control path with a closed walk.
@@ -130,10 +130,10 @@ public:
     OpenWalk() : SwitchboardControlPath() {}
 
     /// Creates an open walk with the given nodes
-    explicit OpenWalk(const igraph::Vector& nodes) : SwitchboardControlPath(nodes) {}
+    explicit OpenWalk(const igraph::VectorInt& nodes) : SwitchboardControlPath(nodes) {}
 
     /// Returns the edges involved in the open walk
-    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+    virtual igraph::VectorInt edges(const igraph::Graph& graph) const;
 
     /// Returns a user-friendly name for the control path type
     virtual std::string name() const {
@@ -156,7 +156,7 @@ public:
     ClosedWalk() : SwitchboardControlPath() {}
 
     /// Creates a closed walk with the given nodes
-    explicit ClosedWalk(const igraph::Vector& nodes) : SwitchboardControlPath(nodes) {}
+    explicit ClosedWalk(const igraph::VectorInt& nodes) : SwitchboardControlPath(nodes) {}
 
     /// Returns \c false since closed walks do not require independent input signals
     virtual bool needsInputSignal() const {
@@ -164,7 +164,7 @@ public:
     }
 
     /// Returns the edges involved in the closed walk
-    virtual igraph::Vector edges(const igraph::Graph& graph) const;
+    virtual igraph::VectorInt edges(const igraph::Graph& graph) const;
 
     /// Returns a user-friendly name for the control path type
     virtual std::string name() const {

@@ -4,8 +4,8 @@
 
 namespace netctrl {
 
-igraph::Vector ControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
-    return igraph::Vector();
+igraph::VectorInt ControllabilityModel::changesInDriverNodesAfterEdgeRemoval() const {
+    return igraph::VectorInt();
 }
 
 std::vector<EdgeClass> ControllabilityModel::edgeClasses() const {

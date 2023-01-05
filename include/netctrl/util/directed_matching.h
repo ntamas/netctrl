@@ -3,7 +3,7 @@
 #ifndef NETCTRL_UTIL_DIRECTED_MATCHING_H
 #define NETCTRL_UTIL_DIRECTED_MATCHING_H
 
-#include <igraph/cpp/vector_long.h>
+#include <igraph/cpp/vector_int.h>
 
 namespace netctrl {
 
@@ -11,10 +11,10 @@ namespace netctrl {
 class DirectedMatching {
 private:
     /// Stores the mapping from matching nodes to matched nodes
-    igraph::VectorLong m_outMapping;
+    igraph::VectorInt m_outMapping;
 
     /// Stores the mapping from matched nodes to matching nodes
-    igraph::VectorLong m_inMapping;
+    igraph::VectorInt m_inMapping;
 
 public:
     /// Enum for the constructor that denotes the format of the incoming vector
@@ -37,7 +37,7 @@ public:
      *                    mapping are provided in out-in or in-out order,
      *                    concatenated.
      */
-    DirectedMatching(const igraph::VectorLong& mapping, Direction direction);
+    DirectedMatching(const igraph::VectorInt& mapping, Direction direction);
 
     /**
      * Returns whether the given node is matched by another node.

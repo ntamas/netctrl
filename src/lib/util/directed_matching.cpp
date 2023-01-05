@@ -8,10 +8,10 @@
 namespace netctrl {
 
 
-DirectedMatching::DirectedMatching(const igraph::VectorLong& mapping,
+DirectedMatching::DirectedMatching(const igraph::VectorInt& mapping,
 		Direction direction) {
 	long int i, n;
-	igraph::VectorLong::const_iterator it, end;
+	igraph::VectorInt::const_iterator it, end;
 
 	switch (direction) {
 		case DIRECTION_OUT_IN:

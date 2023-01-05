@@ -258,11 +258,11 @@ public:
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
-        Vector driver_nodes = m_pModel->driverNodes();
+        VectorInt driver_nodes = m_pModel->driverNodes();
         std::ostream& out = getOutputStream();
 
         info(">> found %d driver node(s)", driver_nodes.size());
-        for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
+        for (VectorInt::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             any name(m_pGraph->vertex(*it).getAttribute("name", (long int)*it));
             if (name.type() == typeid(std::string)) {
                 out << name.as<std::string>() << '\n';
@@ -281,7 +281,7 @@ public:
         info(">> calculating control paths and driver nodes");
         m_pModel->calculate();
 
-        Vector driver_nodes = m_pModel->driverNodes();
+        VectorInt driver_nodes = m_pModel->driverNodes();
         std::vector<ControlPath*> paths = m_pModel->controlPaths();
         info(">> found %d driver node(s) and %d control path(s)",
                 driver_nodes.size(), paths.size());
@@ -290,7 +290,7 @@ public:
         std::vector<EdgeClass> edge_classes = m_pModel->edgeClasses();
 
         // Mark the driver nodes
-        for (Vector::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
+        for (VectorInt::const_iterator it = driver_nodes.begin(); it != driver_nodes.end(); it++) {
             m_pGraph->vertex(*it).setAttribute("is_driver", true);
         }
 
@@ -298,7 +298,7 @@ public:
         j = 0;
         for (std::vector<ControlPath*>::const_iterator it = paths.begin();
                 it != paths.end(); it++, j++) {
-            const igraph::Vector& vec = (*it)->edges(*m_pGraph.get());
+            const igraph::VectorInt& vec = (*it)->edges(*m_pGraph.get());
             n = vec.size();
             for (i = 0; i < n; i++) {
                 igraph::Edge edge = m_pGraph->edge(vec[i]);
@@ -357,7 +357,7 @@ public:
         out << "ER\t" << counts.sum() / counts.size() << '\n';
 
         // Testing configuration model
-        Vector inDegrees, outDegrees;
+        VectorInt inDegrees, outDegrees;
         m_pGraph->degree(&outDegrees, V(m_pGraph.get()), IGRAPH_OUT, true);
         m_pGraph->degree(&inDegrees,  V(m_pGraph.get()), IGRAPH_IN,  true);
 
@@ -366,7 +366,7 @@ public:
         for (i = 0; i < numTrials; i++) {
             std::auto_ptr<Graph> graph =
                 igraph::degree_sequence_game(outDegrees, inDegrees,
-                    IGRAPH_DEGSEQ_SIMPLE);
+                    IGRAPH_DEGSEQ_CONFIGURATION);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
             pModel->setGraph(graph.get());
@@ -386,7 +386,7 @@ public:
 
             std::auto_ptr<Graph> graph =
                 igraph::degree_sequence_game(outDegrees, inDegrees,
-                    IGRAPH_DEGSEQ_SIMPLE);
+                    IGRAPH_DEGSEQ_CONFIGURATION);
 
             std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
             pModel->setGraph(graph.get());

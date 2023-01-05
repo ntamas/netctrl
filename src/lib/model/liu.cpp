@@ -7,7 +7,7 @@
 #include <igraph/cpp/graph.h>
 #include <igraph/cpp/matching.h>
 #include <igraph/cpp/vector_bool.h>
-#include <igraph/cpp/vector_long.h>
+#include <igraph/cpp/vector_int.h>
 #include <igraph/cpp/analysis/components.h>
 #include <igraph/cpp/analysis/non_simple.h>
 #include <netctrl/model/liu.h>
@@ -35,7 +35,7 @@ void LiuControllabilityModel::calculate() {
         types[i] = 1;
     }
     // Calculate the maximum bipartite matching
-    VectorLong matching;
+    VectorInt matching;
     maximum_bipartite_matching(bipartiteGraph, types, 0, 0, &matching, 0, 0);
     for (i = 0; i < n; i++) {
         if (matching[i] != -1)
@@ -58,7 +58,7 @@ void LiuControllabilityModel::calculate() {
     // that have already been assigned to stems or buds.
     std::vector<Stem*> verticesToStems(n);
     VectorBool vertexUsed(n);
-    for (Vector::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
+    for (VectorInt::const_iterator it = m_driverNodes.begin(); it != m_driverNodes.end(); it++) {
         Stem* stem = new Stem();
 
         u = *it;
@@ -88,10 +88,10 @@ void LiuControllabilityModel::calculate() {
         }
 
         // Check whether we can attach the bud to a stem
-        for (Vector::const_iterator it = bud->nodes().begin(), end = bud->nodes().end();
+        for (VectorInt::const_iterator it = bud->nodes().begin(), end = bud->nodes().end();
                 it != end && bud->stem() == 0; it++) {
-            Vector neis = m_pGraph->neighbors(*it, IGRAPH_IN);
-            for (Vector::const_iterator it2 = neis.begin(); it2 != neis.end(); it2++) {
+            VectorInt neis = m_pGraph->neighbors(*it, IGRAPH_IN);
+            for (VectorInt::const_iterator it2 = neis.begin(); it2 != neis.end(); it2++) {
                 if (verticesToStems[*it2] != 0) {
                     bud->setStem(verticesToStems[*it2]);
                     break;
@@ -124,7 +124,7 @@ Graph LiuControllabilityModel::constructBipartiteGraph(bool directed) const {
     long int i, n = m_pGraph->vcount(), m = m_pGraph->ecount() * 2, u, v;
     Graph bipartiteGraph(2*n, directed);
 
-    Vector edges = m_pGraph->getEdgelist();
+    VectorInt edges = m_pGraph->getEdgelist();
 
     if (directed) {
         for (i = 0; i < m; i += 2) {
@@ -174,7 +174,7 @@ std::vector<ControlPath*> LiuControllabilityModel::controlPaths() const {
     return m_controlPaths;
 }
 
-igraph::Vector LiuControllabilityModel::driverNodes() const {
+igraph::VectorInt LiuControllabilityModel::driverNodes() const {
     return m_driverNodes;
 }
 
@@ -214,8 +214,8 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
     while (!queue.empty()) {
         to = queue.front(); queue.pop_front();
 
-        igraph::Vector edges = bipartiteGraph.incident(to, IGRAPH_IN);
-        for (igraph::Vector::const_iterator it = edges.begin(); it != edges.end(); ++it) {
+        igraph::VectorInt edges = bipartiteGraph.incident(to, IGRAPH_IN);
+        for (igraph::VectorInt::const_iterator it = edges.begin(); it != edges.end(); ++it) {
             long int eid = *it;
             if (eid >= m)    // needed for undirected graphs only
                 eid -= m;
@@ -242,8 +242,8 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
     while (!queue.empty()) {
         from = queue.front(); queue.pop_front();
 
-        igraph::Vector edges = bipartiteGraph.incident(from, IGRAPH_OUT);
-        for (igraph::Vector::const_iterator it = edges.begin(); it != edges.end(); ++it) {
+        igraph::VectorInt edges = bipartiteGraph.incident(from, IGRAPH_OUT);
+        for (igraph::VectorInt::const_iterator it = edges.begin(); it != edges.end(); ++it) {
             long int eid = *it;
             if (eid >= m)    // needed for undirected graphs only
                 eid -= m;
@@ -259,8 +259,8 @@ std::vector<EdgeClass> LiuControllabilityModel::edgeClasses() const {
     // (4) Compute the strongly connected components of the bipartite
     //     directed graph, mark all edges inside the same component
     //     as ORDINARY
-    Vector membership(2*n);
-    clusters(bipartiteGraph, &membership, 0, 0, IGRAPH_STRONG);
+    VectorInt membership(2*n);
+    connected_components(bipartiteGraph, &membership, 0, 0, IGRAPH_STRONG);
     for (i = 0; i < m; i++) {
         bipartiteGraph.edge(i, &from, &to);
         if (membership[from] == membership[to]) {
@@ -302,10 +302,10 @@ void LiuControllabilityModel::setGraph(igraph::Graph* graph) {
 /*************************************************************************/
 
 
-igraph::Vector Stem::edges(const igraph::Graph& graph) const {
-    igraph::Vector result;
-    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
-    igraph::Vector::const_iterator end = m_nodes.end();
+igraph::VectorInt Stem::edges(const igraph::Graph& graph) const {
+    igraph::VectorInt result;
+    igraph::VectorInt::const_iterator it = m_nodes.begin(), it2 = it+1;
+    igraph::VectorInt::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
         result.push_back(graph.getEid(*it, *it2));
@@ -319,15 +319,15 @@ std::string Stem::toString() const {
 	std::ostringstream oss;
 
 	oss << "Stem:";
-	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+	for (igraph::VectorInt::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
 		oss << ' ' << *it;
 	}
 
 	return oss.str();
 }
 
-igraph::Vector Bud::edges(const igraph::Graph& graph) const {
-    igraph::Vector result;
+igraph::VectorInt Bud::edges(const igraph::Graph& graph) const {
+    igraph::VectorInt result;
 
     if (m_nodes.size() == 0)
         return result;
@@ -338,8 +338,8 @@ igraph::Vector Bud::edges(const igraph::Graph& graph) const {
         return result;
     }
 
-    igraph::Vector::const_iterator it = m_nodes.begin(), it2 = it+1;
-    igraph::Vector::const_iterator end = m_nodes.end();
+    igraph::VectorInt::const_iterator it = m_nodes.begin(), it2 = it+1;
+    igraph::VectorInt::const_iterator end = m_nodes.end();
 
 	while (it2 != end) {
         result.push_back(graph.getEid(*it, *it2));
@@ -354,7 +354,7 @@ std::string Bud::toString() const {
 	std::ostringstream oss;
 
 	oss << "Bud:";
-	for (igraph::Vector::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
+	for (igraph::VectorInt::const_iterator it = m_nodes.begin(); it != m_nodes.end(); it++) {
 		oss << ' ' << *it;
 	}
     if (stem() != 0) {
