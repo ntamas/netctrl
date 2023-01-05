@@ -295,9 +295,9 @@ SwitchboardControllabilityModel::createControlPathFromNode(long int start,
 		// Find an outbound edge that has not been used yet
 		w = -1;
 		m_pGraph->incident(&incs, v, IGRAPH_OUT);
-		for (VectorInt::const_iterator it2 = incs.begin(); it2 != incs.end(); it2++) {
-			if (!edgeUsed[*it2]) {
-				w = *it2;
+		for (VectorInt::const_iterator it = incs.begin(); it != incs.end(); it++) {
+			if (!edgeUsed[*it]) {
+				w = *it;
 				break;
 			}
 		}
@@ -314,9 +314,28 @@ SwitchboardControllabilityModel::createControlPathFromNode(long int start,
 		// Also update the degree vectors
 		edgeUsed[w] = true;
 		outDegrees[v]--;
-		v = IGRAPH_TO(m_pGraph->c_graph(), w);
+		v = IGRAPH_OTHER(m_pGraph->c_graph(), w, v);
 		inDegrees[v]--;
 	}
+
+    // If the graph is directed, we can traverse the path backwards (we are
+    // essentially using each edge in both directions)
+    if (!m_pGraph->isDirected()) {
+        walk.push_back(v);
+        v = walk.size();
+        for (w = v - 1; w > 0; ) {
+            outDegrees[walk[w]]--;
+            w--;
+            if (w == 0) {
+                break;
+            }
+            walk.push_back(walk[w]);
+            inDegrees[walk[w]]--;
+        }
+        inDegrees[walk[0]]--;
+
+        v = walk[0];
+    }
 
 	// Add v to the walk unless it is equal to the starting point (in which case
 	// we have a closed walk)
