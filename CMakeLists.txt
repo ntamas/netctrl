@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
-cmake_policy(SET CMP0003 NEW)
+cmake_minimum_required(VERSION 3.5)
 
 #####################################################################
 # General project properties
@@ -31,7 +30,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/netctrl/version.h.in
 # Tweaking CMake
 #####################################################################
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/etc/cmake;${CMAKE_CURRENT_SOURCE_DIR}/vendor/igraphpp/etc/cmake;${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/etc/cmake;${CMAKE_MODULE_PATH})
 if(PREFER_STATIC_LIBRARIES)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .a;.lib;${CMAKE_FIND_LIBRARY_SUFFIXES})
 	set(CMAKE_C_FLAGS "-static-libgcc ${CMAKE_C_FLAGS}")
@@ -43,12 +42,6 @@ endif(PREFER_STATIC_LIBRARIES)
 #####################################################################
 
 find_package(igraph REQUIRED)
-
-if(PREFER_STATIC_LIBRARIES)
-	find_package(ZLIB REQUIRED)
-	find_package(LibXml2 REQUIRED)
-	set(igraph_LIBRARIES ${igraph_LIBRARIES} ${LIBXML2_LIBRARIES} ${ZLIB_LIBRARIES})
-endif(PREFER_STATIC_LIBRARIES)
 
 #####################################################################
 # Compiler flags for different build configurations
