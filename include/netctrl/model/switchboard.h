@@ -84,7 +84,7 @@ private:
      * \return a newly allocated control path whose ownership is transferred to
      *         the caller
      */
-    std::auto_ptr<SwitchboardControlPath> createControlPathFromNode(long int start,
+    std::unique_ptr<SwitchboardControlPath> createControlPathFromNode(long int start,
             igraph::VectorBool& edgeUsed, igraph::VectorInt& outDegrees,
             igraph::VectorInt& inDegrees) const;
     

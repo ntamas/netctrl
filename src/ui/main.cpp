@@ -46,10 +46,10 @@ private:
     FILE* m_outputFileObject;
 
     /// Graph being analyzed by the UI
-    std::auto_ptr<Graph> m_pGraph;
+    std::unique_ptr<Graph> m_pGraph;
 
     /// Controllability model being calculated on the graph
-    std::auto_ptr<ControllabilityModel> m_pModel;
+    std::unique_ptr<ControllabilityModel> m_pModel;
 
     /// The C++-style output stream where the results will be written
     std::ostream* m_pOutputStream;
@@ -60,8 +60,7 @@ public:
     LOGGING_FUNCTION(error, 0);
 
     /// Constructor
-    NetworkControllabilityApp() : m_outputFileObject(0),
-        m_pGraph(0), m_pModel(0), m_pOutputStream(0) {}
+    NetworkControllabilityApp() : m_outputFileObject(0), m_pOutputStream(0) {}
 
     /// Destructor
     ~NetworkControllabilityApp() {
@@ -128,8 +127,8 @@ public:
      * If the name of the file is "-", the file is assumed to be the
      * standard input.
      */
-    std::auto_ptr<Graph> loadGraph(const std::string& filename, GraphFormat format) {
-        std::auto_ptr<Graph> result;
+    std::unique_ptr<Graph> loadGraph(const std::string& filename, GraphFormat format) {
+        std::unique_ptr<Graph> result;
 
         if (filename == "-") {
             // Loading graph from standard input
@@ -343,11 +342,11 @@ public:
         info(">> testing Erdos-Renyi null model");
         counts.clear();
         for (i = 0; i < numTrials; i++) {
-            std::auto_ptr<Graph> graph = igraph::erdos_renyi_game_gnm(
+            std::unique_ptr<Graph> graph = igraph::erdos_renyi_game_gnm(
                     numNodes, m_pGraph->ecount(),
                     m_pGraph->isDirected(), false);
 
-            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            std::unique_ptr<ControllabilityModel> pModel(m_pModel->clone());
             pModel->setGraph(graph.get());
             pModel->calculate();
 
@@ -364,11 +363,11 @@ public:
         info(">> testing configuration model (preserving joint degree distribution)");
         counts.clear();
         for (i = 0; i < numTrials; i++) {
-            std::auto_ptr<Graph> graph =
+            std::unique_ptr<Graph> graph =
                 igraph::degree_sequence_game(outDegrees, inDegrees,
                     IGRAPH_DEGSEQ_CONFIGURATION);
 
-            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            std::unique_ptr<ControllabilityModel> pModel(m_pModel->clone());
             pModel->setGraph(graph.get());
             pModel->calculate();
 
@@ -384,11 +383,11 @@ public:
             inDegrees.shuffle();
             outDegrees.shuffle();
 
-            std::auto_ptr<Graph> graph =
+            std::unique_ptr<Graph> graph =
                 igraph::degree_sequence_game(outDegrees, inDegrees,
                     IGRAPH_DEGSEQ_CONFIGURATION);
 
-            std::auto_ptr<ControllabilityModel> pModel(m_pModel->clone());
+            std::unique_ptr<ControllabilityModel> pModel(m_pModel->clone());
             pModel->setGraph(graph.get());
             pModel->calculate();
 

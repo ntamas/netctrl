@@ -182,7 +182,7 @@ void SwitchboardControllabilityModel::calculate() {
 	// Declare some more variables that we will need.
     VectorBool edgeUsed(m_pGraph->ecount());
 	std::vector<SwitchboardControlPath*> controlPathsByNodes(n);
-	std::auto_ptr<SwitchboardControlPath> path;
+	std::unique_ptr<SwitchboardControlPath> path;
 	std::deque<ClosedWalk*> closedWalksToMerge;
 
     // Start stems from each divergent node until there are no more divergent
@@ -283,7 +283,7 @@ std::vector<ControlPath*> SwitchboardControllabilityModel::controlPaths() const 
     return m_controlPaths;
 }
 
-std::auto_ptr<SwitchboardControlPath>
+std::unique_ptr<SwitchboardControlPath>
 SwitchboardControllabilityModel::createControlPathFromNode(long int start,
 		VectorBool& edgeUsed, VectorInt& outDegrees, VectorInt& inDegrees) const {
 	long int v, w;
@@ -351,7 +351,7 @@ SwitchboardControllabilityModel::createControlPathFromNode(long int start,
 		path = new ClosedWalk(walk);
 	}
 
-	return std::auto_ptr<SwitchboardControlPath>(path);
+	return std::unique_ptr<SwitchboardControlPath>(path);
 }
 
 VectorInt SwitchboardControllabilityModel::driverNodes() const {
